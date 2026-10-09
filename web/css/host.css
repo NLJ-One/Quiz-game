@@ -1,0 +1,5 @@
+.page-host main {
+  display: grid;
+  align-content: center;
+  text-align: center;
+}

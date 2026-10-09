@@ -1,0 +1,10 @@
+.page-home main {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 1rem;
+}
+
+.page-home h1 {
+  font-size: clamp(2rem, 8vw, 4rem);
+}

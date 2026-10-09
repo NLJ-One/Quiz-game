@@ -47,12 +47,16 @@ test('authentifie un host et refuse la création de partie avec un quiz invalide
     hostPassword: 'correct horse battery',
     sessionSecret: SECRET,
     clientOrigins: ['https://quiz.example'],
-    serveWeb: false
+    serveWeb: true
   });
   server.listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   t.after(() => new Promise((resolve) => io.close(resolve)));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
+
+  const homePage = await fetch(baseUrl);
+  assert.equal(homePage.status, 200);
+  assert.match(await homePage.text(), /Quiz de mariage/);
 
   const badLogin = await fetch(`${baseUrl}/api/auth`, {
     method: 'POST',

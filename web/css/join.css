@@ -1,0 +1,11 @@
+.page-join main {
+  display: grid;
+  align-content: center;
+  max-width: 42rem;
+}
+
+.page-join form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}

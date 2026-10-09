@@ -1,0 +1,6 @@
+.page-play main {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}

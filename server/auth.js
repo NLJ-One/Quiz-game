@@ -11,6 +11,7 @@ function safeStringEqual(left, right) {
 }
 
 export function createHostToken(secret, now = Date.now()) {
+  if (!secret) throw new Error('SESSION_SECRET est requis pour signer un jeton hôte.');
   const payload = Buffer.from(JSON.stringify({
     role: 'host',
     exp: Math.floor(now / 1000) + TOKEN_LIFETIME_SECONDS
@@ -20,7 +21,7 @@ export function createHostToken(secret, now = Date.now()) {
 }
 
 export function verifyHostToken(token, secret, now = Date.now()) {
-  if (typeof token !== 'string') return false;
+  if (typeof token !== 'string' || !secret) return false;
   const [payload, signature, extra] = token.split('.');
   if (!payload || !signature || extra !== undefined) return false;
 

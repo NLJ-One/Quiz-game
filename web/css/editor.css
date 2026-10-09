@@ -1,0 +1,4 @@
+.page-editor main {
+  display: grid;
+  align-content: start;
+}
