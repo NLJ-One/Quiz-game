@@ -1,4 +1,4 @@
-import { API_URL, apiFetch } from '/js/config.js';
+import { apiFetch } from '/js/config.js';
 import { TEXTS } from '/shared/texts.fr.js';
 import { WEDDING_CONFIG } from '/js/wedding.config.js';
 import { newQuestion } from '/shared/quiz-schema.js';
@@ -132,5 +132,4 @@ loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-void API_URL;
 loadQuizzes();

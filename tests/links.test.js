@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -26,6 +26,14 @@ function resolveReference(reference, sourcePath) {
     : path.resolve(path.dirname(sourcePath), pathname);
 }
 
+function isFile(filePath) {
+  try {
+    return statSync(filePath).isFile();
+  } catch {
+    return false;
+  }
+}
+
 const htmlFiles = walk(webRoot).filter((file) => file.endsWith('.html'));
 const jsFiles = walk(webRoot).filter((file) => file.endsWith('.js'));
 
@@ -36,7 +44,7 @@ test('all local href, src, and JavaScript module imports resolve to existing fil
     const html = readFileSync(htmlPath, 'utf8');
     for (const match of html.matchAll(/\b(?:href|src)\s*=\s*["']([^"']+)["']/gi)) {
       const resolved = resolveReference(match[1], htmlPath);
-      if (resolved && !existsSync(resolved)) {
+      if (resolved && !isFile(resolved)) {
         missing.push(`${path.relative(projectRoot, htmlPath)} -> ${match[1]}`);
       }
     }
@@ -50,7 +58,7 @@ test('all local href, src, and JavaScript module imports resolve to existing fil
     ];
     for (const match of imports) {
       const resolved = resolveReference(match[1], jsPath);
-      if (resolved && !existsSync(resolved)) {
+      if (resolved && !isFile(resolved)) {
         missing.push(`${path.relative(projectRoot, jsPath)} -> ${match[1]}`);
       }
     }
@@ -87,6 +95,10 @@ test('every page loads the shared styles, its page styles, and exactly one modul
     }
     assert.equal(moduleScripts.length, 1, `${page} has exactly one module script`);
     assert.match(moduleScripts[0][1], /^\/js\/[^/]+\/main\.js$/, `${page} uses a page main.js`);
+    const mainModule = readFileSync(resolveReference(moduleScripts[0][1], htmlPath), 'utf8');
+    assert.match(mainModule, /(?:from\s+)?["']\/js\/config\.js["']/, `${page} imports config.js`);
+    assert.match(mainModule, /(?:from\s+)?["']\/shared\/texts\.fr\.js["']/, `${page} imports texts.fr.js`);
+    assert.match(mainModule, /(?:from\s+)?["']\/js\/wedding\.config\.js["']/, `${page} imports wedding.config.js`);
     assert.match(html, /<meta\s+name=["']viewport["']\s+content=["']width=device-width, initial-scale=1, viewport-fit=cover["']/i, `${page} viewport`);
     assert.match(html, /<meta\s+name=["']theme-color["']/i, `${page} theme color`);
     assert.match(html, /<link\b[^>]*rel=["']manifest["'][^>]*href=["']\/manifest\.webmanifest["']/i, `${page} manifest`);
