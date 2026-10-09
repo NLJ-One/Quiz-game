@@ -1,18 +1,29 @@
 # Projet : WeddingQuiz
 
-Projet : "WeddingQuiz", un quiz en direct façon Kahoot pour un mariage (jusqu'à 150 joueurs, surtout sur smartphone). Interface en français.
+WeddingQuiz est un quiz en direct façon Kahoot pour un mariage, jusqu'à 150 joueurs, principalement sur smartphone. L'interface est en français.
 
-Stack imposée, SANS exception :
-- Front : HTML5, CSS3 et JavaScript vanilla en modules ES (<script type="module">). INTERDIT : React, Vue, jQuery, Tailwind, TypeScript, Webpack/Vite ou tout outil de build. Seules bibliothèques front autorisées, chargées en local (copiées dans /public/vendor) : socket.io-client, et éventuellement qrcode-generator et canvas-confetti.
-- Serveur : Node.js 20, Express, Socket.IO, multer pour les uploads. Données en fichiers JSON dans /data. Pas de base de données, pas d'ORM.
-- Le dossier /shared contient du JS importable des deux côtés (modules ES) : constantes d'événements, validation du quiz, calcul des scores.
+## Architecture imposée
 
-Règles de code :
-- Code simple et lisible, fonctions courtes, noms explicites en anglais, textes d'interface en français regroupés dans /shared/texts.fr.js.
-- Le serveur est la SEULE source de vérité : score, chrono, bonne réponse. Le client n'envoie jamais de score et ne reçoit jamais la bonne réponse avant la fin de la question.
-- Toute donnée reçue (HTTP ou socket) est validée côté serveur avant usage.
-- Mobile-first : conçu d'abord pour 360 px de large, puis tablette, puis grand écran projeté.
-- CSS : variables CSS (:root) pour toutes les couleurs et polices (changement de thème en un endroit), Flexbox/Grid, clamp() pour les tailles de texte, unités dvh pour la hauteur mobile. Animations uniquement avec transform et opacity. Respecter prefers-reduced-motion.
-- Accessibilité : contrastes AA, cibles tactiles ≥ 48 px, ne jamais indiquer une réponse par la couleur seule (ajouter formes/icônes).
-- Pas de secrets en dur : variables d'environnement + fichier .env.example.
-- Tests avec le module natif node:test pour toute la logique de jeu.
+Le site et le serveur temps réel sont déployés séparément.
+
+- `/web` est le site statique publié tel quel par Netlify, sans commande ni étape de build. Il contient `index.html`, `join.html`, `play.html`, `host.html`, `editor.html`, ainsi que `css`, `js`, `assets`, `vendor`, `shared` et `data`.
+- `/server` contient le serveur Node.js 20, Express et Socket.IO, hébergé séparément sur Render, Railway ou Fly. En production, il ne sert aucune page web : uniquement le WebSocket et les routes API. En développement, il peut servir `/web` pour permettre `npm run dev` sur `http://localhost:3000`.
+- `/web/shared` contient des modules JavaScript ES importés par le navigateur et par le serveur via `../web/shared/`: protocole, validation, textes français et calcul des scores.
+- Les quiz sont stockés uniquement dans le navigateur de l'organisateur (`localStorage`), avec import/export JSON. Le serveur conserve les parties en mémoire et reçoit le quiz complet uniquement à la création de partie.
+- Les photos versionnées sont placées dans `/web/assets/photos` et servies par le CDN Netlify. Les quiz peuvent les référencer par chemin ou URL.
+
+## Technologies et règles
+
+- Front : HTML5, CSS3 et JavaScript vanilla en modules ES (`<script type="module">`). Interdits : React, Vue, jQuery, Tailwind, TypeScript, Webpack/Vite et tout outil de build. Les bibliothèques autorisées sont copiées dans `/web/vendor` (Socket.IO client, éventuellement QR code et confettis).
+- Serveur : Node.js 20, Express, Socket.IO, CORS et dotenv. Pas de base de données ni de stockage persistant.
+- Aucune URL du serveur n'est dispersée dans le code. `/web/js/config.js` exporte `API_URL` et `apiFetch()`. En local, l'API est `http://localhost:3000`; en production, modifier `PROD_API_URL`.
+- Le serveur est la seule source de vérité pour score, chronomètre et bonnes réponses. Le client n'envoie jamais de score et ne reçoit pas la bonne réponse avant la fin de la question.
+- Toute donnée HTTP ou Socket.IO entrante est validée côté serveur. CORS accepte uniquement les origines de `CLIENT_ORIGINS`.
+- Pas de cookies : le host s'authentifie avec un jeton signé HMAC-SHA256 via `Authorization: Bearer` et le handshake Socket.IO.
+- Aucun quiz n'est stocké côté serveur. Ne pas ajouter de route d'upload ni d'écriture sur disque.
+- Code simple et lisible, fonctions courtes, noms explicites en anglais. Les textes d'interface sont en français et regroupés dans `/web/shared/texts.fr.js`.
+- Mobile-first à partir de 360 px, puis tablette et grand écran de projection.
+- CSS : variables `:root`, Flexbox/Grid, `clamp()` pour les tailles de texte et unités `dvh`. Animations limitées à `transform` et `opacity`; respecter `prefers-reduced-motion`.
+- Accessibilité : contraste AA, cibles tactiles d'au moins 48 px, et jamais de réponse indiquée par la couleur seule.
+- Pas de secrets en dur : variables d'environnement et `.env.example`.
+- Tester la logique de jeu avec le module natif `node:test`.

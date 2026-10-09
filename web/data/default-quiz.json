@@ -1,0 +1,117 @@
+{
+  "id": "quiz-maries-exemple",
+  "title": "Les mariés",
+  "description": "Un quiz d'exemple pour célébrer les mariés.",
+  "settings": {
+    "shuffleQuestions": false,
+    "shuffleAnswers": false,
+    "pointsBase": 1000,
+    "speedBonus": true,
+    "streakBonus": true,
+    "showCorrectAnswer": true,
+    "showLeaderboardAfterEachQuestion": true,
+    "leaderboardSize": 5,
+    "autoAdvance": true,
+    "delayBeforeNext": 3,
+    "maxPlayers": 150,
+    "allowLateJoin": true,
+    "nicknameFilter": "none",
+    "uniqueNicknames": true,
+    "teamMode": "off",
+    "tables": [],
+    "lobbyMusic": false,
+    "soundEffects": true,
+    "showQRCode": false
+  },
+  "questions": [
+    {
+      "id": "q-rencontre",
+      "type": "single",
+      "text": "Où les mariés se sont-ils rencontrés ?",
+      "media": "",
+      "duration": 30,
+      "points": "standard",
+      "choices": ["À une fête", "Au travail", "En voyage", "À l'école"],
+      "correctAnswer": "À une fête",
+      "explanation": "À vous de personnaliser cette réponse."
+    },
+    {
+      "id": "q-dates",
+      "type": "multiple",
+      "text": "Quelles saisons sont les préférées des mariés ?",
+      "media": "",
+      "duration": 30,
+      "points": "standard",
+      "choices": ["Printemps", "Été", "Automne", "Hiver"],
+      "correctAnswers": ["Printemps", "Été"],
+      "explanation": ""
+    },
+    {
+      "id": "q-voyage",
+      "type": "truefalse",
+      "text": "Les mariés ont déjà voyagé ensemble à l'étranger.",
+      "media": "",
+      "duration": 20,
+      "points": "standard",
+      "choices": ["Vrai", "Faux"],
+      "correctAnswer": "Vrai",
+      "explanation": ""
+    },
+    {
+      "id": "q-annee",
+      "type": "slider",
+      "text": "En quelle année les mariés se sont-ils rencontrés ?",
+      "media": "",
+      "duration": 30,
+      "points": "standard",
+      "min": 2000,
+      "max": 2030,
+      "step": 1,
+      "correctValue": 2020,
+      "tolerance": 2,
+      "explanation": ""
+    },
+    {
+      "id": "q-plat",
+      "type": "text",
+      "text": "Quel est le plat préféré du couple ?",
+      "media": "",
+      "duration": 30,
+      "points": "standard",
+      "acceptedAnswers": ["à personnaliser"],
+      "explanation": ""
+    },
+    {
+      "id": "q-piste",
+      "type": "poll",
+      "text": "Quelle chanson fera danser les mariés ce soir ?",
+      "media": "",
+      "duration": 30,
+      "points": "none",
+      "choices": ["Leur chanson", "Un classique", "Une surprise"],
+      "explanation": ""
+    },
+    {
+      "id": "q-ordre",
+      "type": "order",
+      "text": "Remettez ces étapes dans l'ordre de leur histoire.",
+      "media": "",
+      "duration": 30,
+      "points": "standard",
+      "order": ["Rencontre", "Premier rendez-vous", "Emménagement", "Mariage"],
+      "correctAnswer": ["Rencontre", "Premier rendez-vous", "Emménagement", "Mariage"],
+      "explanation": ""
+    },
+    {
+      "id": "q-toast",
+      "type": "single",
+      "text": "Quel est le meilleur souhait pour les mariés ?",
+      "media": "",
+      "duration": 20,
+      "points": "standard",
+      "choices": ["Beaucoup de bonheur", "Des aventures", "Des fous rires", "Tout cela à la fois"],
+      "correctAnswer": "Tout cela à la fois",
+      "explanation": "À votre santé !"
+    }
+  ]
+}

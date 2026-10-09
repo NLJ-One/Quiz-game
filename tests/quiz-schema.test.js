@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateQuiz, newQuestion, defaultSettings } from '../shared/quiz-schema.js';
+import fs from 'node:fs';
+import { validateQuiz, newQuestion, defaultSettings } from '../web/shared/quiz-schema.js';
 
 const validQuiz = {
   id: 'quiz-1',
@@ -56,4 +57,9 @@ test('newQuestion génère un objet valide pour le type single', () => {
 test('defaultSettings contient les paramètres attendus', () => {
   assert.equal(defaultSettings.pointsBase, 1000);
   assert.equal(defaultSettings.leaderboardSize, 5);
+});
+
+test('le quiz exemple est valide', () => {
+  const quiz = JSON.parse(fs.readFileSync(new URL('../web/data/default-quiz.json', import.meta.url), 'utf8'));
+  assert.deepEqual(validateQuiz(quiz), { valid: true, errors: [] });
 });

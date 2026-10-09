@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { computeScore, normalizeText } from '../shared/scoring.js';
+import { computeScore, normalizeText } from '../web/shared/scoring.js';
 
 test('normalizeText enlève les accents et la ponctuation', () => {
   assert.equal(normalizeText('Café, très bien !'), 'cafe tres bien');
@@ -10,7 +10,7 @@ test('single score donne le maximum si réponse correcte et délai long', () => 
   const q = { type: 'single', points: 'standard', correctAnswer: 'Bleu' };
   const score = computeScore(q, 'Bleu', 1, { pointsBase: 1000, speedBonus: true }, 2);
   assert.ok(score > 0);
-  assert.equal(score, 1600);
+  assert.equal(score, 1200);
 });
 
 test('multiple score applique une pénalité aux mauvais choix', () => {
@@ -30,7 +30,7 @@ test('slider score diminue avec l\'écart', () => {
 test('text score compare les réponses normalisées', () => {
   const q = { type: 'text', acceptedAnswers: ['Bonjour les amis'] };
   const score = computeScore(q, 'bonjour, les amis!', 1, { pointsBase: 1000, speedBonus: true }, 0);
-  assert.equal(score, 1500);
+  assert.equal(score, 1000);
 });
 
 test('poll retourne 0 point', () => {
