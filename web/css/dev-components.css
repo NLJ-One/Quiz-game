@@ -56,6 +56,14 @@
   .demo-answers { grid-template-columns: 1fr; }
   .demo-answers .answer { min-height: 3.5rem; }
   .bottom-bar__center { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dev-final .podium { display: flex; flex-direction: column; align-items: stretch; }
+  .dev-final .podium-place--second { order: 1; }
+  .dev-final .podium-place--first { order: 2; }
+  .dev-final .podium-place--third { order: 3; }
+  .dev-final .podium-place { width: 100%; }
+  .dev-final .podium-place--first .podium-column { min-height: 11rem; }
+  .dev-final .podium-place--second .podium-column { min-height: 9rem; }
+  .dev-final .podium-place--third .podium-column { min-height: 7rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
