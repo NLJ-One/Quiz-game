@@ -26,13 +26,41 @@
       </div>
       <section class="card host-lobby" aria-live="polite">
         <div class="stack">
+          <p id="seeded-host-title" class="muted"></p>
           <p class="muted">Code à partager avec les invités</p>
           <p id="host-code" class="host-code">------</p>
-          <span class="badge">La partie n’a pas encore commencé</span>
+          <span id="seeded-host-state" class="badge">En attente</span>
+          <div id="seeded-host-controls" class="seeded-host-controls" hidden>
+            <p id="seeded-host-instructions" class="muted">Partage le code avec les invités avant de lancer. Le quiz compte 15 questions de 12 secondes.</p>
+            <div class="row seeded-host-actions">
+              <button id="seeded-host-start" class="btn btn--primary" type="button">Lancer la partie</button>
+              <button id="seeded-host-next" class="btn btn--secondary" type="button" disabled>Question suivante</button>
+              <button id="seeded-host-pause" class="btn btn--secondary" type="button" disabled>Mettre en pause</button>
+              <button id="seeded-host-finish" class="btn btn--secondary" type="button" disabled>Terminer la partie</button>
+              <button id="seeded-host-show-board" class="btn btn--secondary" type="button" disabled>Afficher le classement</button>
+              <button id="seeded-host-logout" class="btn btn--secondary" type="button">Déconnexion</button>
+            </div>
+            <p id="seeded-host-question" class="seeded-host-question"></p>
+            <section id="seeded-host-leaderboard" class="seeded-host-leaderboard" hidden></section>
+          </div>
         </div>
         <div class="host-qr" role="img" aria-label="Emplacement du code QR">
           Le code QR sera disponible ici
         </div>
+      </section>
+      <section id="seeded-host-auth" class="card host-login" hidden>
+        <p class="eyebrow">Connexion organisateur</p>
+        <h2>Quiz Chloé et Gilles</h2>
+        <p class="muted">Connecte-toi avec le compte Supabase autorisé pour gérer la salle.</p>
+        <form id="seeded-host-login-form">
+          <label for="seeded-host-email">Adresse e-mail
+            <input class="input" id="seeded-host-email" name="email" type="email" autocomplete="username" required />
+          </label>
+          <label for="seeded-host-password">Mot de passe
+            <input class="input" id="seeded-host-password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="btn btn--primary" type="submit">Se connecter</button>
+        </form>
       </section>
       <section class="card">
         <div class="row">

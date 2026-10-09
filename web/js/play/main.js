@@ -31,5 +31,14 @@ if (!/^\d{6}$/.test(code) || !session || session.code !== code || typeof session
   codeElement.textContent = code;
   avatar.textContent = ANIMAL_AVATARS[normalizeAvatarIndex(session.avatarIndex)];
   title.textContent = `Bienvenue, ${session.pseudo} !`;
-  status.textContent = 'Vous êtes dans la salle. La partie commencera bientôt.';
+  if (session.seeded) {
+    import('/js/wedding/player.js')
+      .then(({ mountWeddingPlayer }) => mountWeddingPlayer(session, code))
+      .catch((error) => {
+        status.textContent = error.message || 'Impossible de charger la partie.';
+        status.classList.add('error-message');
+      });
+  } else {
+    status.textContent = 'Vous êtes dans la salle. La partie commencera bientôt.';
+  }
 }

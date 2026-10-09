@@ -18,6 +18,7 @@ export async function mountWeddingHost() {
   let currentState = null;
   let onlineIds = new Set();
   let refreshPending = false;
+  let timerHandle;
 
   function setStatus(message, isError = false) {
     status.textContent = message;
@@ -26,6 +27,7 @@ export async function mountWeddingHost() {
 
   function render() {
     if (!currentState) return;
+    window.clearTimeout(timerHandle);
     const labels = {
       waiting: 'En attente',
       playing: 'En cours',
@@ -119,7 +121,7 @@ export async function mountWeddingHost() {
     if (!timer || !currentState?.questionEndsAt) return;
     const remaining = Math.max(0, Math.ceil((Date.parse(currentState.questionEndsAt) - Date.now()) / 1000));
     timer.textContent = `Temps restant : ${remaining} s`;
-    if (remaining > 0) setTimeout(updateTimer, 250);
+    if (remaining > 0) timerHandle = window.setTimeout(updateTimer, 250);
   }
 
   async function refresh() {

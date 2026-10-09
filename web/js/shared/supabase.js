@@ -36,21 +36,50 @@ export async function weddingAction(action, payload = {}) {
 export function subscribeToWeddingGame(sessionId, onChange, onPresence) {
   const supabase = getSupabase();
   const channel = supabase.channel(`wedding-game:${sessionId}`, {
-    config: { presence: { key: `client-${crypto.randomUUID()}` } }
+    config: {
+      broadcast: { self: false },
+      presence: { key: crypto.randomUUID() }
+    }
   })
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'wedding_quiz_sessions',
-      filter: `id=eq.${sessionId}`
-    }, onChange)
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'wedding_quiz_players',
-      filter: `session_id=eq.${sessionId}`
-    }, onChange)
-    .on('presence', { event: 'sync' }, () => onPresence(channel.presenceState()));
+    .on('broadcast', { event: 'state_changed' }, onChange)
+    .on('presence', { event: 'sync' }, () => onPresence?.(channel.presenceState()));
 
-  return channel;
+  const ready = new Promise((resolve, reject) => {
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') resolve(status);
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        reject(new Error(`La synchronisation temps réel a échoué (${status}).`));
+      }
+    });
+  });
+  return { channel, ready };
+}
+
+export async function notifyWeddingGame(sessionId) {
+  const supabase = getSupabase();
+  const channel = supabase.channel(`wedding-game:${sessionId}`, {
+    config: { broadcast: { self: false } }
+  });
+  try {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('Délai de connexion Realtime dépassé.')), 10000);
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(timeout);
+          resolve(status);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          clearTimeout(timeout);
+          reject(new Error(`La notification Realtime a échoué (${status}).`));
+        }
+      });
+    });
+    const result = await channel.send({
+      type: 'broadcast',
+      event: 'state_changed',
+      payload: {}
+    });
+    if (result !== 'ok') throw new Error(`La notification Realtime a échoué (${result}).`);
+  } finally {
+    await supabase.removeChannel(channel);
+  }
 }

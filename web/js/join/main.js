@@ -3,6 +3,7 @@ import { TEXTS } from '/shared/texts.fr.js';
 import { ANIMAL_AVATARS, normalizeAvatarIndex } from '/shared/avatars.js';
 import { WEDDING_CONFIG } from '/js/wedding.config.js';
 import { applyTheme } from '/js/shared/theme.js';
+import { isSupabaseConfigured, notifyWeddingGame, weddingAction } from '/js/shared/supabase.js';
 
 const PLAYER_SESSION_KEY = 'weddingquiz.playerSession';
 const form = document.querySelector('#join-form');
@@ -52,18 +53,32 @@ ANIMAL_AVATARS.forEach((emoji, index) => {
 });
 selectAvatar(selectedAvatarIndex);
 
-document.querySelector('#continue-join').addEventListener('click', () => {
+document.querySelector('#continue-join').addEventListener('click', async (event) => {
   if (!/^\d{6}$/.test(codeInput.value.trim())) {
     status.textContent = TEXTS.roomCodeInvalid;
     status.classList.add('error-message');
     codeInput.focus();
     return;
   }
+  const button = event.currentTarget;
+  button.disabled = true;
   status.classList.remove('error-message');
-  status.textContent = '';
+  status.textContent = TEXTS.loading;
+  try {
+    if (!isSupabaseConfigured()) throw new Error('La connexion Supabase n’est pas configurée sur ce site.');
+    const game = await weddingAction('lookup', { code: codeInput.value.trim() });
+    if (!game?.found) throw new Error('Aucune salle en attente ne correspond à ce code.');
+    status.textContent = game.title;
+  } catch (error) {
+    status.textContent = error.message || 'Impossible de trouver cette partie.';
+    status.classList.add('error-message');
+    button.disabled = false;
+    return;
+  }
   codeStep.hidden = true;
   playerStep.hidden = false;
   nicknameInput.focus();
+  button.disabled = false;
 });
 
 document.querySelector('#back-to-code').addEventListener('click', () => {
@@ -72,7 +87,7 @@ document.querySelector('#back-to-code').addEventListener('click', () => {
   codeInput.focus();
 });
 
-form.addEventListener('submit', (event) => {
+form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const code = codeInput.value.trim();
   const pseudo = nicknameInput.value.trim();
@@ -92,15 +107,36 @@ form.addEventListener('submit', (event) => {
     return;
   }
 
-  const token = globalThis.crypto?.randomUUID?.()
-    || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-  localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
-    code,
-    pseudo,
-    token,
-    avatarIndex: normalizeAvatarIndex(selectedAvatarIndex)
-  }));
   status.classList.remove('error-message');
   status.textContent = TEXTS.loading;
-  location.assign(`/play.html?code=${encodeURIComponent(code)}`);
+  const submit = form.querySelector('button[type="submit"]');
+  submit.disabled = true;
+  try {
+    if (!isSupabaseConfigured()) throw new Error('La connexion Supabase n’est pas configurée sur ce site.');
+    const player = await weddingAction('join', {
+      code,
+      pseudo,
+      avatar_index: normalizeAvatarIndex(selectedAvatarIndex)
+    });
+    if (!player?.joined || !player.sessionId || !player.playerId || !player.token) {
+      throw new Error('Supabase n’a pas confirmé ton inscription à la salle.');
+    }
+    localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify({
+      code,
+      pseudo,
+      playerId: player.playerId,
+      sessionId: player.sessionId,
+      token: player.token,
+      avatarIndex: normalizeAvatarIndex(selectedAvatarIndex),
+      avatar: ANIMAL_AVATARS[normalizeAvatarIndex(selectedAvatarIndex)]
+    }));
+    void notifyWeddingGame(player.sessionId).catch((error) => {
+      console.warn('Notification Realtime après inscription impossible; la salle sera actualisée automatiquement.', error);
+    });
+    location.assign(`/play.html?code=${encodeURIComponent(code)}`);
+  } catch (error) {
+    status.textContent = error.message || 'Impossible de rejoindre cette partie.';
+    status.classList.add('error-message');
+    submit.disabled = false;
+  }
 });

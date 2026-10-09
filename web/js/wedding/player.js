@@ -14,6 +14,7 @@ export async function mountWeddingPlayer(session, code) {
   let submitted = false;
   let busy = false;
   let channel;
+  let timerInterval;
 
   document.querySelector('#play-code').textContent = code;
   document.querySelector('#play-avatar').textContent = session.avatar || '';
@@ -39,6 +40,7 @@ export async function mountWeddingPlayer(session, code) {
 
   function render() {
     if (!state) return;
+    window.clearInterval(timerInterval);
     content.replaceChildren();
     const index = state.questionIndex + 1;
     const progressBar = progress.querySelector('.progress__bar');
@@ -56,7 +58,7 @@ export async function mountWeddingPlayer(session, code) {
 
     if (state.status === 'paused') {
       showMessage('La partie est en pause. Attends que l’organisateur reprenne.');
-      renderQuestion(false);
+      renderQuestion(true);
       renderLeaderboard();
       return;
     }
@@ -87,6 +89,9 @@ export async function mountWeddingPlayer(session, code) {
     prompt.textContent = state.question.text;
     const options = document.createElement('div');
     options.className = 'wedding-answer-options';
+    const deadlinePassed = state.questionEndsAt
+      ? Date.parse(state.questionEndsAt) <= Date.now()
+      : false;
     for (const answer of state.question.choices) {
       const button = document.createElement('button');
       button.type = 'button';
@@ -94,7 +99,8 @@ export async function mountWeddingPlayer(session, code) {
       button.textContent = answer;
       const isCorrect = state.question.correctAnswer === answer;
       if (state.question.correctAnswer && isCorrect) button.classList.add('is-correct');
-      button.disabled = readOnly || !state.questionOpen || state.answered || submitted || busy;
+      button.disabled = readOnly || !state.questionOpen || state.answered
+        || submitted || busy || deadlinePassed;
       button.addEventListener('click', async () => {
         submitted = true;
         busy = true;
@@ -134,8 +140,12 @@ export async function mountWeddingPlayer(session, code) {
     timer.className = 'wedding-player-timer';
     const remaining = Math.max(0, Math.ceil((Date.parse(state.questionEndsAt) - Date.now()) / 1000));
     timer.textContent = remaining > 0 ? `Temps restant : ${remaining} s` : 'Temps écoulé…';
+    if (remaining === 0) {
+      for (const button of content.querySelectorAll('.wedding-answer')) button.disabled = true;
+      showMessage('Temps écoulé. Attends la clôture de la question par l’organisateur.');
+    }
     content.append(timer);
-    if (remaining > 0) window.setTimeout(() => {
+    if (remaining > 0) timerInterval = window.setTimeout(() => {
       timer.remove();
       tickTimer();
     }, 250);

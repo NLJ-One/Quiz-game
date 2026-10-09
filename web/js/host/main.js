@@ -11,7 +11,14 @@ const status = document.querySelector('#host-status');
 applyTheme(WEDDING_CONFIG);
 renderHeader();
 
-if (!/^\d{6}$/.test(code)) {
+if (new URLSearchParams(location.search).get('seed') === 'chloe-gilles') {
+  import('/js/wedding/host.js')
+    .then(({ mountWeddingHost }) => mountWeddingHost())
+    .catch((error) => {
+      status.textContent = error.message || 'Impossible de charger la salle organisateur.';
+      status.classList.add('error-message');
+    });
+} else if (!/^\d{6}$/.test(code)) {
   status.textContent = 'Aucune salle n’a été sélectionnée.';
   location.replace('/editor.html');
 } else {

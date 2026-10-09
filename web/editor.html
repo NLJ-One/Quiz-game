@@ -24,8 +24,45 @@
         </div>
         <button class="btn btn--primary btn--large" id="new-quiz" type="button">Nouveau quiz</button>
       </div>
+      <section class="card preset-quiz" aria-labelledby="preset-title">
+        <div class="preset-quiz__intro">
+          <p class="eyebrow">Quiz préenregistré</p>
+          <h2 id="preset-title">Connaissez vous vraiment Chloé et Gilles</h2>
+          <p class="muted">On va voir si vos connaissez Gilles et Chloé.</p>
+          <p class="muted">15 questions · 12 secondes par question</p>
+        </div>
+        <p id="preset-status" class="status-message" role="status" aria-live="polite">Vérification du compte organisateur…</p>
+        <form id="preset-login-form" class="preset-login" hidden>
+          <label for="preset-email">E-mail organisateur
+            <input class="input" id="preset-email" name="email" type="email" autocomplete="username" required />
+          </label>
+          <label for="preset-password">Mot de passe
+            <input class="input" id="preset-password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="btn btn--primary" type="submit">Se connecter</button>
+        </form>
+        <div class="preset-quiz__actions">
+          <button class="btn btn--primary" id="preset-prepare" type="button" hidden>Préparer la partie</button>
+          <button class="btn btn--secondary" id="preset-logout" type="button" hidden>Se déconnecter</button>
+        </div>
+      </section>
       <p id="editor-status" class="editor-status status-message" role="status" aria-live="polite">Chargement des quiz…</p>
       <section id="quiz-list" class="quiz-list" aria-label="Quiz enregistrés"></section>
+      <section id="seeded-host-auth" class="host-login card" hidden>
+        <p class="eyebrow">Connexion organisateur</p>
+        <h2>Quiz Chloé et Gilles</h2>
+        <p class="muted">Connecte-toi avec le compte Supabase autorisé pour ouvrir la salle.</p>
+        <form id="seeded-host-login-form">
+          <label for="seeded-host-email">Adresse e-mail
+            <input class="input" id="seeded-host-email" name="email" type="email" autocomplete="username" required />
+          </label>
+          <label for="seeded-host-password">Mot de passe
+            <input class="input" id="seeded-host-password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="btn btn--primary" type="submit">Se connecter</button>
+        </form>
+        <p id="seeded-host-auth-status" class="status-message" role="status" aria-live="polite"></p>
+      </section>
       <section id="host-login" class="host-login card" hidden>
         <p class="eyebrow">Connexion organisateur</p>
         <h2>Authentification requise</h2>

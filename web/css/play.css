@@ -53,6 +53,12 @@
 .play-avatar { display: grid; width: 4rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-md); background: #e5f3dc; font-size: 2.5rem; }
 .play-progress { width: min(100%, 30rem); margin-top: var(--space-6); }
 .page-play .site-header { display: none; }
+.wedding-player-content { display: grid; gap: var(--space-4); width: 100%; margin-top: var(--space-4); }
+.wedding-answer-options { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+.wedding-answer { min-height: 3.25rem; }
+.wedding-answer.is-correct { border-color: #176b37; background: #e2f4e5; color: #104b28; }
+.wedding-player-timer { font-size: 1.3rem; font-weight: 800; text-align: center; }
+.page-play .status-card ol { display: grid; gap: var(--space-2); text-align: left; }
 
 @media (min-width: 768px) {
   .join-card { width: min(95%, 25rem); }
