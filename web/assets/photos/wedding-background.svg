@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-label="Illustration florale pour un mariage">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1">
+      <stop stop-color="#8b6170"/>
+      <stop offset="1" stop-color="#d4a986"/>
+    </linearGradient>
+    <linearGradient id="ground" x2="0" y2="1">
+      <stop stop-color="#52614b"/>
+      <stop offset="1" stop-color="#263a32"/>
+    </linearGradient>
+    <radialGradient id="sun">
+      <stop stop-color="#fff3d4" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#f0c891" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="1425" cy="280" r="340" fill="url(#sun)"/>
+  <path d="M0 745 Q350 650 720 760T1440 728T1920 745V1080H0Z" fill="url(#ground)"/>
+  <path d="M0 895Q420 790 810 910T1590 860T1920 890V1080H0Z" fill="#263a32" opacity=".7"/>
+  <g fill="none" stroke="#e8d4a6" stroke-linecap="round" opacity=".55">
+    <path d="M120 1080Q190 810 82 560M155 944Q60 876 45 790M142 866Q248 806 262 703M1770 1080Q1664 822 1818 560M1745 962Q1844 890 1888 790M1758 858Q1640 815 1624 710" stroke-width="12"/>
+    <path d="M214 1080Q350 850 335 640M1685 1080Q1560 840 1587 640" stroke-width="7"/>
+  </g>
+  <g fill="#f7e8d8" opacity=".78">
+    <circle cx="82" cy="560" r="24"/><circle cx="45" cy="790" r="19"/><circle cx="262" cy="703" r="22"/>
+    <circle cx="1818" cy="560" r="24"/><circle cx="1888" cy="790" r="19"/><circle cx="1624" cy="710" r="22"/>
+    <circle cx="335" cy="640" r="18"/><circle cx="1587" cy="640" r="18"/>
+  </g>
+  <g fill="#d9a86b" opacity=".8">
+    <circle cx="82" cy="560" r="8"/><circle cx="45" cy="790" r="7"/><circle cx="262" cy="703" r="7"/>
+    <circle cx="1818" cy="560" r="8"/><circle cx="1888" cy="790" r="7"/><circle cx="1624" cy="710" r="7"/>
+  </g>
+</svg>

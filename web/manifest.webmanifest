@@ -1,0 +1,9 @@
+{
+  "name": "Quiz de mariage",
+  "short_name": "Quiz mariés",
+  "lang": "fr",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#fbf6f2",
+  "theme_color": "#8b4358"
+}

@@ -1,5 +1,6 @@
 export const TEXTS = {
   appTitle: 'Quiz de mariage',
+  homeLink: 'Accueil',
   joinButton: 'Rejoindre une partie',
   hostArea: 'Espace organisateur',
   nickname: 'Pseudo',
@@ -11,5 +12,11 @@ export const TEXTS = {
   codeInputLabel: 'Entrez le code de la salle',
   answerCorrect: 'Bonne réponse',
   answerIncorrect: 'Mauvaise réponse',
-  leaderboardTitle: 'Classement'
+  leaderboardTitle: 'Classement',
+  joinSubtitle: 'Saisissez le code affiché par les organisateurs.',
+  loading: 'Chargement…',
+  roomCodeInvalid: 'Le code doit contenir 6 chiffres.',
+  nicknameInvalid: 'Choisissez un pseudo de 2 à 20 caractères.',
+  playerTokenInvalid: 'La session joueur est introuvable. Rejoignez à nouveau la partie.',
+  quizLoadingError: 'Impossible de charger les quiz enregistrés.'
 };

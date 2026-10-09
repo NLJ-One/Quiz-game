@@ -1,16 +1,39 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="romantique">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Éditeur de quiz</title>
     <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
     <link rel="stylesheet" href="/css/editor.css" />
-    <script type="module" src="/js/editor.js"></script>
+    <script type="module" src="/js/editor/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8b4358" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Éditeur de quiz — Quiz de mariage</title>
   </head>
   <body class="page-editor">
     <main class="container">
-      <h1>Éditeur de quiz</h1>
+      <div class="editor-heading">
+        <div>
+          <p class="eyebrow">Espace organisateur</p>
+          <h1>Vos quiz</h1>
+          <p class="muted">Choisissez un quiz à lancer ou créez votre prochain souvenir.</p>
+        </div>
+        <button class="btn btn--primary btn--large" id="new-quiz" type="button">Nouveau quiz</button>
+      </div>
+      <p id="editor-status" class="editor-status status-message" role="status" aria-live="polite">Chargement des quiz…</p>
+      <section id="quiz-list" class="quiz-list" aria-label="Quiz enregistrés"></section>
+      <section id="host-login" class="host-login card" hidden>
+        <p class="eyebrow">Connexion organisateur</p>
+        <h2>Authentification requise</h2>
+        <p class="muted">Entrez le mot de passe organisateur pour créer la salle.</p>
+        <form id="host-login-form">
+          <label for="host-password">Mot de passe organisateur
+            <input class="input" id="host-password" name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="btn btn--primary" type="submit">Se connecter et lancer</button>
+        </form>
+      </section>
     </main>
   </body>
 </html>

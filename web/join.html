@@ -1,21 +1,33 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="romantique">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rejoindre une partie</title>
     <link rel="stylesheet" href="/css/base.css" />
-    <link rel="stylesheet" href="/css/join.css" />
-    <script type="module" src="/js/join.js"></script>
+    <link rel="stylesheet" href="/css/theme.css" />
+    <link rel="stylesheet" href="/css/play.css" />
+    <script type="module" src="/js/join/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8b4358" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Rejoindre une partie — Quiz de mariage</title>
   </head>
   <body class="page-join">
-    <main class="container card">
-      <h1>Rejoindre une partie</h1>
-      <form>
-        <label>Code de salle <input type="text" name="code" /></label>
-        <label>Pseudo <input type="text" name="pseudo" /></label>
-        <button type="submit" class="btn">Entrer</button>
-      </form>
+    <main class="container center-screen">
+      <section class="card">
+        <p class="eyebrow">Bienvenue !</p>
+        <h1>Rejoindre une partie</h1>
+        <p class="muted">Saisissez le code affiché par les organisateurs, puis choisissez votre pseudo.</p>
+        <form id="join-form" class="join-form">
+          <label for="room-code">Code de la salle
+            <input class="input" id="room-code" name="code" type="text" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" required />
+          </label>
+          <label for="player-nickname">Pseudo
+            <input class="input" id="player-nickname" name="pseudo" type="text" autocomplete="nickname" minlength="2" maxlength="20" required />
+          </label>
+          <button class="btn btn--primary btn--large" type="submit">Entrer dans la partie</button>
+          <p id="join-status" class="status-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
     </main>
   </body>
 </html>

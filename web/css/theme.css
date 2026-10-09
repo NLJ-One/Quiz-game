@@ -1,0 +1,47 @@
+:root,
+:root[data-theme='romantique'] {
+  --color-primary: #8b4358;
+  --color-primary-strong: #6f3044;
+  --color-accent: #d5a95b;
+  --color-bg: #fbf6f2;
+  --color-surface: #fffdfb;
+  --color-text: #30252a;
+  --color-muted: #71666b;
+  --color-border: #e8dfe1;
+  --font-title: Georgia, 'Times New Roman', serif;
+  --font-body: Arial, Helvetica, sans-serif;
+}
+
+:root[data-theme='champetre'] {
+  --color-primary: #486b4b;
+  --color-primary-strong: #355439;
+  --color-accent: #c68b50;
+  --color-bg: #f3f6ed;
+  --color-surface: #fffef9;
+  --color-text: #29352b;
+  --color-muted: #62705f;
+  --color-border: #dce5d4;
+}
+
+:root[data-theme='dore'] {
+  --color-primary: #765619;
+  --color-primary-strong: #573d0e;
+  --color-accent: #d4ae52;
+  --color-bg: #faf6e9;
+  --color-surface: #fffdf5;
+  --color-text: #352e1e;
+  --color-muted: #726747;
+  --color-border: #e8dfc6;
+}
+
+:root[data-theme='minimal'] {
+  --color-primary: #333b48;
+  --color-primary-strong: #202631;
+  --color-accent: #8093ad;
+  --color-bg: #f2f4f7;
+  --color-surface: #fff;
+  --color-text: #252a32;
+  --color-muted: #626a75;
+  --color-border: #dce0e6;
+  --font-title: Arial, Helvetica, sans-serif;
+}

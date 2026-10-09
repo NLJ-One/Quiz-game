@@ -1,16 +1,45 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="romantique">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Écran hôte</title>
     <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
     <link rel="stylesheet" href="/css/host.css" />
-    <script type="module" src="/js/host.js"></script>
+    <link rel="stylesheet" href="/css/leaderboard.css" />
+    <script type="module" src="/js/host/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8b4358" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Espace organisateur — Quiz de mariage</title>
   </head>
   <body class="page-host">
     <main class="container">
-      <h1>Écran hôte</h1>
+      <div class="host-heading">
+        <div>
+          <p class="eyebrow">Espace organisateur</p>
+          <h1>La salle est prête</h1>
+        </div>
+        <a class="btn btn--secondary" href="/editor.html">Retour à l’éditeur</a>
+      </div>
+      <section class="card host-lobby" aria-live="polite">
+        <div class="stack">
+          <p class="muted">Code à partager avec les invités</p>
+          <p id="host-code" class="host-code">------</p>
+          <span class="badge">La partie n’a pas encore commencé</span>
+        </div>
+        <div class="host-qr" role="img" aria-label="Emplacement du code QR">
+          Le code QR sera disponible ici
+        </div>
+      </section>
+      <section class="card">
+        <div class="row">
+          <h2>Invités connectés</h2>
+          <span id="player-count" class="badge">0 joueur</span>
+        </div>
+        <ul id="player-list" class="player-list"></ul>
+        <p id="player-empty" class="empty-state">Les invités apparaîtront ici lorsqu’ils rejoindront la salle.</p>
+      </section>
+      <p id="host-status" class="status-message" role="status" aria-live="polite"></p>
     </main>
   </body>
 </html>

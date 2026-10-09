@@ -1,4 +1,14 @@
 .page-editor main {
   display: grid;
   align-content: start;
+  gap: var(--space-6);
 }
+
+.editor-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-4); }
+.quiz-list { display: grid; gap: var(--space-4); }
+.quiz-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.quiz-item h2 { margin: 0 0 var(--space-2); }
+.quiz-item p { margin: 0; }
+.host-login { max-width: 34rem; }
+.host-login form { display: grid; gap: var(--space-4); }
+.editor-status { min-height: 1.5rem; }

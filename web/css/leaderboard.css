@@ -1,0 +1,8 @@
+.leaderboard-placeholder {
+  display: grid;
+  min-height: 8rem;
+  place-items: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+}

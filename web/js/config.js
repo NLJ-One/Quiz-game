@@ -23,7 +23,9 @@ export async function apiFetch(path, options = {}) {
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
     const message = Array.isArray(payload.error) ? payload.error.join(' ') : payload.error;
-    throw new Error(message || `Erreur serveur (${response.status}).`);
+    const error = new Error(message || `Erreur serveur (${response.status}).`);
+    error.status = response.status;
+    throw error;
   }
   return response;
 }

@@ -32,9 +32,9 @@ Pour régénérer automatiquement `photos.json` après avoir ajouté ou retiré 
 
 - Les hébergeurs gratuits peuvent mettre le serveur en veille après environ 15 minutes d'inactivité; le premier réveil peut prendre 30 à 60 secondes. Ouvre `/health` environ 10 minutes avant l'arrivée des invités. UptimeRobot ou un service équivalent peut ping `/health` toutes les 5 minutes pendant la soirée.
 - Option recommandée pour la soirée : utiliser pendant un mois l'offre payante la moins chère du serveur pour éviter la veille et bénéficier de davantage de CPU.
-- Teste le système 24 h avant avec `npm run loadtest` (ce script de charge est à ajouter/configurer), vérifie le Wi-Fi et la 4G de la salle, imprime le QR code et le code de secours sur chaque table, et exporte le quiz en JSON.
+- Teste le système 24 h avant avec `npm run loadtest -- --url https://<serveur>.onrender.com --players 100 --duration 60`, en fournissant `HOST_PASSWORD` dans l'environnement. Le test crée une partie de test conservée en mémoire jusqu'au redémarrage du serveur et connecte des clients Socket.IO; vérifie le Wi-Fi et la 4G de la salle, imprime le QR code et le code de secours sur chaque table, et exporte le quiz en JSON.
 - Prévois un plan B si la connexion tombe : relancer une partie et exporter les scores lorsque les écrans de jeu seront implémentés.
 
 ## État actuel
 
-L'architecture de déploiement, les bases de validation, d'authentification et de stockage local sont en place. Les pages `host.html`, `play.html` et `editor.html` restent des squelettes; les interactions de jeu, l'éditeur complet, le service worker et le script de charge restent à implémenter.
+L'architecture de déploiement, les bases de validation, d'authentification et de stockage local sont en place. Les pages `host.html`, `play.html` et `editor.html` restent des squelettes; les interactions de jeu, l'éditeur complet et le service worker restent à implémenter. Le test de charge valide la disponibilité HTTP et les connexions Socket.IO, pas encore les scénarios complets d'une partie.

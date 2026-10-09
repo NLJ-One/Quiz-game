@@ -1,16 +1,29 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="romantique">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Écran joueur</title>
     <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
     <link rel="stylesheet" href="/css/play.css" />
-    <script type="module" src="/js/play.js"></script>
+    <script type="module" src="/js/play/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#8b4358" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Partie en cours — Quiz de mariage</title>
   </head>
   <body class="page-play">
-    <main class="container">
-      <h1>Écran joueur</h1>
+    <main class="container center-screen">
+      <section class="card status-card" aria-live="polite">
+        <span class="badge">Salle <span id="play-code" class="play-code">------</span></span>
+        <span class="loader" aria-hidden="true"></span>
+        <h1 id="play-title">En attente du lancement…</h1>
+        <p id="play-status" class="status-message">La partie apparaîtra ici dès qu’elle commencera.</p>
+        <div class="play-progress">
+          <div class="progress" role="progressbar" aria-label="Progression de la partie" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progress__bar"></div>
+          </div>
+        </div>
+      </section>
     </main>
   </body>
 </html>
