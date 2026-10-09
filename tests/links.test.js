@@ -73,7 +73,8 @@ test('every page loads the shared styles, its page styles, and exactly one modul
     ['join.html', ['/css/play.css']],
     ['play.html', ['/css/play.css']],
     ['host.html', ['/css/host.css', '/css/leaderboard.css']],
-    ['editor.html', ['/css/editor.css']]
+    ['editor.html', ['/css/editor.css']],
+    ['dev-components.html', ['/css/leaderboard.css', '/css/dev-components.css', '/css/play.css']]
   ]);
   const expectedPages = new Set(expectedStyles.keys());
 

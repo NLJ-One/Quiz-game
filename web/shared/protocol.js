@@ -10,6 +10,7 @@ export const SOCKET_EVENTS = {
   HOST_RECONNECT: 'host:reconnect',
 
   PLAYER_JOIN: 'player:join',
+  PLAYER_HELLO: 'hello',
   PLAYER_ANSWER: 'player:answer',
   PLAYER_RECONNECT: 'player:reconnect',
 
@@ -37,13 +38,14 @@ export const SOCKET_EVENTS = {
  *
  * Player -> server payloads.
  *
- * player:join: { code: string, pseudo: string, table?: string }
+ * hello: { code: string, pseudo: string, avatarIndex: number, table?: string }
+ * player:join: { code: string, pseudo: string, avatarIndex: number, table?: string }
  * player:answer: { gameId: string, questionId: string, answer: unknown, clientTimestamp: number }
  * player:reconnect: { gameId: string, token: string }
  *
  * Server -> clients payloads.
  *
- * lobby:update: { code: string, players: Array<{ id: string, pseudo: string, table?: string, score: number }>, host: boolean }
+ * lobby:update: { code: string, players: Array<{ id: string, pseudo: string, avatarIndex: number, table?: string, score: number }>, host: boolean }
  * game:starting: { gameId: string, startsAt: number }
  * question:show: { questionId: string, endsAt: number, serverNow: number, duration: number, prompt: string, choices?: Array<string>, media?: string, type: string }
  * question:end: { questionId: string, correctAnswer?: unknown, leaderboard?: Array<object>, stats?: object }

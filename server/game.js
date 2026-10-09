@@ -1,5 +1,6 @@
 import { validateQuiz } from '../web/shared/quiz-schema.js';
 import { computeScore } from '../web/shared/scoring.js';
+import { normalizeAvatarIndex } from '../web/shared/avatars.js';
 
 export class Game {
   constructor({ code, quiz, hostSocket }) {
@@ -15,7 +16,7 @@ export class Game {
   }
 
   addPlayer(socket, player) {
-    const { pseudo, table } = player;
+    const { pseudo, table, avatarIndex } = player;
     if (!pseudo || typeof pseudo !== 'string') {
       throw new Error('Le pseudo est invalide.');
     }
@@ -28,6 +29,7 @@ export class Game {
     const normalized = {
       id: socket.id,
       pseudo,
+      avatarIndex: normalizeAvatarIndex(avatarIndex),
       table: table || 'Table 1',
       score: 0,
       streak: 0,
@@ -39,7 +41,9 @@ export class Game {
   }
 
   getPublicPlayers() {
-    return [...this.players.values()].map(({ id, pseudo, table, score }) => ({ id, pseudo, table, score }));
+    return [...this.players.values()].map(({ id, pseudo, avatarIndex, table, score }) => ({
+      id, pseudo, avatarIndex, table, score
+    }));
   }
 
   getQuestionPayload() {
@@ -148,7 +152,7 @@ export class Game {
   getLeaderboard() {
     return [...this.players.values()]
       .sort((a, b) => b.score - a.score)
-      .map(({ id, pseudo, score, table }) => ({ id, pseudo, score, table }));
+      .map(({ id, pseudo, avatarIndex, score, table }) => ({ id, pseudo, avatarIndex, score, table }));
   }
 }
 

@@ -1,3 +1,9 @@
+.page-host .scoreboard-screen {
+  background-image: linear-gradient(135deg, transparent 0 48%, rgb(255 255 255 / 3%) 48% 51%, transparent 51%),
+    linear-gradient(45deg, transparent 0 48%, rgb(255 255 255 / 2.5%) 48% 51%, transparent 51%);
+  background-size: 7rem 7rem, 9rem 9rem;
+}
+
 .leaderboard-placeholder {
   display: grid;
   min-height: 8rem;
@@ -5,4 +11,29 @@
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-muted);
+}
+
+.top-five {
+  position: fixed;
+  z-index: 4;
+  top: 50%;
+  right: 1.5rem;
+  width: 18rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: rgb(5 46 31 / 90%);
+  color: var(--white);
+  transform: translateY(-50%);
+}
+
+.top-five h2 { margin: 0 0 0.6rem; font-size: 1.1rem; }
+.top-five .scoreboard { width: 100%; gap: 0.4rem; margin: 0; }
+.top-five .scoreboard-row { min-height: 2.75rem; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.5rem; padding: 0.35rem 0.55rem; font-size: 0.8rem; }
+.top-five .scoreboard-row__avatar { width: 1.8rem; font-size: 1rem; }
+.scoreboard-row__answered::after { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--lime); content: ''; }
+
+.page-host .site-header { display: none; }
+
+@media (max-width: 1279px) {
+  .top-five { display: none; }
 }

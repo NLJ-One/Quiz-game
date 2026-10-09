@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr" data-theme="vert">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/theme.css" />
+    <link rel="stylesheet" href="/css/play.css" />
+    <link rel="stylesheet" href="/css/leaderboard.css" />
+    <link rel="stylesheet" href="/css/dev-components.css" />
+    <script src="/vendor/canvas-confetti.js" defer></script>
+    <script type="module" src="/js/dev-components/main.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#064e2b" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Composants — Quiz de mariage</title>
+  </head>
+  <body class="page-rank quiz-backdrop">
+    <main class="dev-components">
+      <header class="dev-heading">
+        <div class="wordmark" id="dev-wordmark">Les mariés</div>
+        <h1>Direction artistique — Quiz vert</h1>
+        <p>Planche de composants responsive · données de démonstration uniquement</p>
+      </header>
+
+      <section class="dev-section" aria-labelledby="question-demo-title">
+        <h2 id="question-demo-title">Question &amp; réponses</h2>
+        <div class="question-box">Qui a fait le premier pas ?</div>
+        <div class="demo-time">
+          <div class="time-bar" data-seconds="5" role="progressbar" aria-label="Temps restant" aria-valuemin="0" aria-valuemax="30" aria-valuenow="5">
+            <div class="time-bar__fill demo-time__fill"></div>
+          </div>
+          <p class="time-remaining">⏱ 5 secondes</p>
+        </div>
+        <div class="demo-answers" aria-label="Réponses">
+          <button class="answer answer--triangle" type="button">Au café du coin</button>
+          <button class="answer answer--diamond is-correct" type="button">À la gare</button>
+          <button class="answer answer--circle is-incorrect" type="button">En vacances</button>
+          <button class="answer answer--square is-incorrect" type="button">À une fête</button>
+        </div>
+        <div class="answer-result" aria-label="Répartition des réponses">
+          <div class="answer-result__row"><span>A</span><span class="answer-result__track"><span class="answer-result__bar result-bar--one"></span></span><span>12</span></div>
+          <div class="answer-result__row"><span>B ✓</span><span class="answer-result__track"><span class="answer-result__bar result-bar--two"></span></span><span>24</span></div>
+          <div class="answer-result__row"><span>C</span><span class="answer-result__track"><span class="answer-result__bar result-bar--three"></span></span><span>8</span></div>
+          <div class="answer-result__row"><span>D</span><span class="answer-result__track"><span class="answer-result__bar result-bar--four"></span></span><span>3</span></div>
+        </div>
+      </section>
+
+      <section class="dev-section" aria-labelledby="join-demo-title">
+        <h2 id="join-demo-title">Carte de connexion</h2>
+        <div class="join-card demo-join-card">
+          <p class="eyebrow">Bienvenue !</p>
+          <h3>Rejoindre une partie</h3>
+          <div class="demo-join-fields">
+            <label>Code de la partie<input class="input join-code-input" value="123456" readonly /></label>
+            <label>Ton pseudo<input class="input" value="Camille" readonly /></label>
+            <div class="demo-avatar">🐼 <span>Animal choisi</span></div>
+            <button class="btn btn--raised btn--large join-submit" type="button">Rejoindre</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="dev-section" aria-labelledby="leaderboard-demo-title">
+        <div class="dev-section-heading">
+          <h2 id="leaderboard-demo-title">Classement en direct</h2>
+          <label class="player-count-control" for="player-count">
+            Joueurs affichés
+            <input id="player-count" type="range" min="5" max="100" value="5" />
+            <output id="player-count-value" for="player-count">5</output>
+          </label>
+        </div>
+        <div class="demo-controls">
+          <button class="btn btn--secondary" id="shuffle-players" type="button">Simuler une montée</button>
+        </div>
+        <ol id="demo-scoreboard" class="scoreboard" aria-label="Classement fictif"></ol>
+        <div class="top-five top-five--demo">
+          <h3>Top 5 · panneau compact</h3>
+          <ol class="scoreboard" aria-label="Top cinq fictif">
+            <li class="scoreboard-row"><span class="scoreboard-row__avatar">🐼</span><span class="scoreboard-row__name">Noah</span><span class="scoreboard-row__score">9 820</span></li>
+            <li class="scoreboard-row"><span class="scoreboard-row__avatar">🦊</span><span class="scoreboard-row__name">Léa</span><span class="scoreboard-row__score">8 450</span></li>
+            <li class="scoreboard-row"><span class="scoreboard-row__avatar">🐸</span><span class="scoreboard-row__name">Camille</span><span class="scoreboard-row__score">7 120</span></li>
+            <li class="scoreboard-row"><span class="scoreboard-row__avatar">🐢</span><span class="scoreboard-row__name">Jules</span><span class="scoreboard-row__score">6 250</span></li>
+            <li class="scoreboard-row"><span class="scoreboard-row__avatar">🦉</span><span class="scoreboard-row__name">Alex</span><span class="scoreboard-row__score">5 920</span></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="dev-section dev-final" aria-labelledby="podium-demo-title">
+        <h2 id="podium-demo-title">Classement final &amp; podium</h2>
+        <div class="podium" aria-label="Podium des trois premiers">
+          <div class="podium-place podium-place--second">
+            <div class="podium-player"><span class="podium-player__avatar">🦊</span>Léa</div>
+            <div class="podium-column"><span class="medal medal--silver">2</span><span class="podium-column__score">8 450</span><span class="podium-column__detail">2 bonnes réponses sur 3</span></div>
+          </div>
+          <div class="podium-place podium-place--first">
+            <div class="podium-player"><span class="podium-player__avatar">🐼</span>Noah</div>
+            <div class="podium-column"><span class="medal medal--gold">1</span><span class="podium-column__score">9 820</span><span class="podium-column__detail">3 bonnes réponses sur 3</span></div>
+          </div>
+          <div class="podium-place podium-place--third">
+            <div class="podium-player"><span class="podium-player__avatar">🐸</span>Camille</div>
+            <div class="podium-column"><span class="medal medal--bronze">3</span><span class="podium-column__score">7 120</span><span class="podium-column__detail">2 bonnes réponses sur 3</span></div>
+          </div>
+        </div>
+        <div class="dev-controls">
+          <button class="btn btn--raised" id="confetti-button" type="button">Lancer les confettis</button>
+          <p id="motion-status" role="status" aria-live="polite"></p>
+        </div>
+        <div class="scoreboard demo-extras" aria-label="Autres joueurs">
+          <div class="scoreboard-row is-player"><span class="scoreboard-row__avatar">🐢</span><span class="scoreboard-row__name">Ton pseudo · 7e</span><span class="scoreboard-row__score">6 250 pts</span></div>
+          <div class="scoreboard-row"><span class="scoreboard-row__avatar">🦉</span><span class="scoreboard-row__name">Alex</span><span class="scoreboard-row__score">5 920 pts</span></div>
+        </div>
+      </section>
+
+      <nav class="bottom-bar" aria-label="Exemple de commandes hôte">
+        <div>2 / 14 <span aria-hidden="true">‹ ›</span></div>
+        <div class="bottom-bar__center">Rejoindre sur quiz.mariage.fr · Code : <strong>123456</strong></div>
+        <div class="bottom-bar__actions"><button type="button" aria-label="Son">♫</button><button type="button" aria-label="Réglages">⚙</button><button type="button" aria-label="Plein écran">⛶</button></div>
+      </nav>
+    </main>
+  </body>
+</html>

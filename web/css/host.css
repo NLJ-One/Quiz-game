@@ -4,8 +4,9 @@
   gap: var(--space-6);
 }
 
+.page-host { color: var(--white); }
 .host-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }
-.host-code { color: var(--color-primary); font-size: clamp(2rem, 8vw, 4rem); font-weight: 800; letter-spacing: 0.12em; }
+.host-code { color: var(--green-700); font-size: clamp(2rem, 8vw, 4rem); font-weight: 800; letter-spacing: 0.12em; }
 .host-lobby { display: grid; grid-template-columns: 1fr; gap: var(--space-6); }
 .host-qr {
   display: grid;
@@ -19,7 +20,9 @@
 }
 
 .player-list { padding: 0; margin: 0; list-style: none; }
-.player-list li { padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); }
+.player-list li { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border); color: var(--color-text); }
+.player-avatar { display: grid; width: 2.5rem; aspect-ratio: 1; place-items: center; border-radius: var(--radius-sm); background: #e5f3dc; font-size: 1.4rem; }
+.page-host .host-lobby > .stack .muted { color: var(--color-muted); }
 
 @media (min-width: 768px) {
   .host-lobby { grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.2fr); }

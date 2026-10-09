@@ -1,17 +1,9 @@
-.page-home {
-  color: #fff;
-  background-color: #49323a;
-  background-image: linear-gradient(90deg, rgb(32 19 27 / 76%), rgb(32 19 27 / 18%)),
-    url('/assets/photos/wedding-background.svg');
-  background-position: center;
-  background-size: cover;
-}
-
-.page-home .site-header { border-color: rgb(255 255 255 / 20%); background: rgb(37 25 31 / 35%); }
-.page-home .site-brand, .page-home .site-home { color: white; }
+.page-home { color: var(--white); }
+.page-home .site-header { border-color: rgb(255 255 255 / 20%); }
 .page-home main { display: grid; min-height: calc(100dvh - 4.5rem); align-items: center; }
-.home-content { max-width: 42rem; padding-block: clamp(3rem, 12vh, 8rem); }
-.home-content h1 { margin: var(--space-3) 0 var(--space-4); font-size: clamp(3rem, 12vw, 6.5rem); }
-.home-content p { max-width: 34rem; color: rgb(255 255 255 / 88%); font-size: clamp(1.1rem, 3vw, 1.4rem); }
+.home-content { max-width: 48rem; padding-block: clamp(2rem, 8vh, 6rem); }
+.home-content .wordmark { margin-inline: 0; text-align: left; }
+.home-content h1 { margin: var(--space-3) 0 var(--space-4); font-size: clamp(2.6rem, 10vw, 5.5rem); }
+.home-content p { max-width: 34rem; color: rgb(255 255 255 / 92%); font-size: clamp(1.05rem, 3vw, 1.35rem); }
 .home-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-8); }
-.home-actions .btn--secondary { border-color: rgb(255 255 255 / 65%); background: rgb(255 255 255 / 12%); color: #fff; }
+.home-actions .btn--secondary { border-color: rgb(255 255 255 / 65%); background: rgb(255 255 255 / 12%); color: var(--white); }

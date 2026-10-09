@@ -1,6 +1,6 @@
 # Projet : WeddingQuiz
 
-WeddingQuiz est un quiz en direct façon Kahoot pour un mariage, jusqu'à 150 joueurs, principalement sur smartphone. L'interface est en français.
+WeddingQuiz est un quiz en direct pour un mariage, jusqu'à 150 joueurs, principalement sur smartphone. L'interface est en français.
 
 ## Architecture imposée
 

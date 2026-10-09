@@ -1,5 +1,6 @@
 import '/js/config.js';
 import { TEXTS } from '/shared/texts.fr.js';
+import { ANIMAL_AVATARS, normalizeAvatarIndex } from '/shared/avatars.js';
 import { WEDDING_CONFIG } from '/js/wedding.config.js';
 import { renderHeader } from '/js/shared/header.js';
 import { applyTheme } from '/js/shared/theme.js';
@@ -9,6 +10,7 @@ const code = new URLSearchParams(location.search).get('code') || '';
 const status = document.querySelector('#play-status');
 const codeElement = document.querySelector('#play-code');
 const title = document.querySelector('#play-title');
+const avatar = document.querySelector('#play-avatar');
 
 applyTheme(WEDDING_CONFIG);
 renderHeader();
@@ -27,6 +29,7 @@ if (!/^\d{6}$/.test(code) || !session || session.code !== code || typeof session
   location.replace(`/join.html${/^\d{6}$/.test(code) ? `?code=${encodeURIComponent(code)}` : ''}`);
 } else {
   codeElement.textContent = code;
+  avatar.textContent = ANIMAL_AVATARS[normalizeAvatarIndex(session.avatarIndex)];
   title.textContent = `Bienvenue, ${session.pseudo} !`;
   status.textContent = 'Vous êtes dans la salle. La partie commencera bientôt.';
 }

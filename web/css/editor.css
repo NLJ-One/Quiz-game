@@ -4,6 +4,8 @@
   gap: var(--space-6);
 }
 
+.page-editor { color: var(--white); }
+.page-editor .editor-status, .page-editor .editor-heading .muted { color: rgb(255 255 255 / 88%); }
 .editor-heading { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--space-4); }
 .quiz-list { display: grid; gap: var(--space-4); }
 .quiz-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); }

@@ -6,4 +6,5 @@ import { applyTheme } from '/js/shared/theme.js';
 
 document.title = `${TEXTS.appTitle} — ${WEDDING_CONFIG.coupleNames}`;
 applyTheme(WEDDING_CONFIG);
+document.querySelector('#home-wordmark').textContent = WEDDING_CONFIG.coupleNames;
 renderHeader();

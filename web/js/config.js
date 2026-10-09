@@ -1,4 +1,4 @@
-﻿const PROD_API_URL = 'https://your-server.onrender.com';
+const PROD_API_URL = 'https://your-server.onrender.com';
 
 const isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
 export const API_URL = isLocalhost ? 'http://localhost:3000' : PROD_API_URL;
