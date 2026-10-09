@@ -27,3 +27,12 @@ Le site et le serveur temps réel sont déployés séparément.
 - Accessibilité : contraste AA, cibles tactiles d'au moins 48 px, et jamais de réponse indiquée par la couleur seule.
 - Pas de secrets en dur : variables d'environnement et `.env.example`.
 - Tester la logique de jeu avec le module natif `node:test`.
+
+## Direction artistique
+
+- Utiliser par défaut le thème `vert` (`data-theme="vert"`) avec les variables de palette définies dans `/web/css/theme.css`. Conserver les thèmes de mariage existants disponibles.
+- Fond des écrans de jeu vert en dégradé, avec 2 à 3 grandes formes translucides CSS et, pour le classement, des facettes triangulaires discrètes. Aucun arrière-plan image pour ces écrans.
+- Employer Montserrat (graisses 500/700/800) pour l’interface. Le wordmark est constitué uniquement des prénoms configurés des mariés, en blanc avec la police de titre du mariage. Ne jamais reprendre le nom, le logo ou les personnages d’une marque existante.
+- Utiliser des cartes blanches nettes, un contraste AA, des tuiles de réponses vertes différenciées par couleur et forme, des lignes de classement arrondies, un podium 2–1–3 avec médailles, et des confettis festifs. Les avatars sont exclusivement des emojis d’animaux, jamais des images.
+- Le formulaire joueur présente le code, puis le pseudo et le choix d’avatar dans la même carte. Les composants visuels réutilisables sont les classes `.join-card`, `.question-box`, `.answer`, `.time-bar`, `.scoreboard`, `.scoreboard-row`, `.podium`, `.medal` et `.bottom-bar` ; éviter les styles inline.
+- Concevoir mobile-first dès 360 px, puis tablette et projection 16:9. Les animations utilisent uniquement `transform` et `opacity`, restent limitées à 12 éléments simultanés, et respectent `prefers-reduced-motion` ainsi que le mode économie.

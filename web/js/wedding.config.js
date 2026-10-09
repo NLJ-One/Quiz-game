@@ -1,4 +1,4 @@
 export const WEDDING_CONFIG = {
   coupleNames: 'Les mariés',
-  theme: 'romantique'
+  theme: 'vert'
 };

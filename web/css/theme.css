@@ -1,4 +1,49 @@
 :root,
+:root[data-theme='vert'] {
+  color-scheme: light;
+  --green-950: #052e1f;
+  --green-900: #0a3d2a;
+  --green-800: #0f5132;
+  --green-700: #146c43;
+  --green-600: #198754;
+  --green-500: #22a06b;
+  --green-400: #4cc38a;
+  --green-300: #86e0b0;
+  --lime: #b7f34d;
+  --white: #fff;
+  --gold: #f4c430;
+  --silver: #c0c7cf;
+  --bronze: #d9822b;
+  --color-primary: var(--green-700);
+  --color-primary-strong: var(--green-900);
+  --color-accent: var(--lime);
+  --color-bg: #f3f7f3;
+  --color-surface: var(--white);
+  --color-text: #15271d;
+  --color-muted: #53665a;
+  --color-border: #dce8df;
+  --color-success: var(--green-700);
+  --color-danger: #a52f40;
+  --font-title: Georgia, 'Times New Roman', serif;
+  --font-body: 'Montserrat', Arial, Helvetica, sans-serif;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-pill: 999px;
+  --shadow-card: 0 1rem 3rem rgb(5 46 31 / 14%);
+  --shadow-raised: 0 0.5rem 1.5rem rgb(5 46 31 / 18%);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --z-header: 10;
+  --z-toast: 50;
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+}
+
 :root[data-theme='romantique'] {
   --color-primary: #8b4358;
   --color-primary-strong: #6f3044;
@@ -44,4 +89,5 @@
   --color-muted: #626a75;
   --color-border: #dce0e6;
   --font-title: Arial, Helvetica, sans-serif;
+  --font-body: Arial, Helvetica, sans-serif;
 }

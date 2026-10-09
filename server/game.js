@@ -1,4 +1,5 @@
 import { validateQuiz } from '../web/shared/quiz-schema.js';
+import { computeScore } from '../web/shared/scoring.js';
 
 export class Game {
   constructor({ code, quiz, hostSocket }) {
@@ -41,10 +42,29 @@ export class Game {
     return [...this.players.values()].map(({ id, pseudo, table, score }) => ({ id, pseudo, table, score }));
   }
 
+  getQuestionPayload() {
+    if (!this.currentQuestion) return null;
+    return {
+      id: this.currentQuestion.id,
+      text: this.currentQuestion.text,
+      type: this.currentQuestion.type,
+      duration: this.currentQuestion.duration || 30,
+      media: this.currentQuestion.media || '',
+      choices: Array.isArray(this.currentQuestion.choices) ? [...this.currentQuestion.choices] : [],
+      order: Array.isArray(this.currentQuestion.order) ? [...this.currentQuestion.order] : [],
+      endsAt: this.currentEndsAt,
+      serverNow: Date.now()
+    };
+  }
+
   start() {
     const result = validateQuiz(this.quiz);
     if (!result.valid) {
       throw new Error(result.errors[0] || 'Le quiz est invalide.');
+    }
+
+    if (!this.quiz.questions?.length) {
+      throw new Error('Le quiz ne contient aucune question.');
     }
 
     this.status = 'active';
@@ -54,7 +74,7 @@ export class Game {
     this.currentEndsAt = Date.now() + (this.currentQuestion.duration || 30) * 1000;
 
     return {
-      question: this.currentQuestion,
+      question: this.getQuestionPayload(),
       endsAt: this.currentEndsAt,
       serverNow: Date.now()
     };
@@ -78,7 +98,7 @@ export class Game {
     this.currentEndsAt = Date.now() + (this.currentQuestion.duration || 30) * 1000;
 
     return {
-      question: this.currentQuestion,
+      question: this.getQuestionPayload(),
       endsAt: this.currentEndsAt,
       serverNow: Date.now()
     };
@@ -86,18 +106,43 @@ export class Game {
 
   recordAnswer(socketId, questionId, answer) {
     if (!this.currentQuestion || this.currentQuestion.id !== questionId) {
-      return false;
+      return { accepted: false, reason: 'question-mismatch' };
     }
 
     const player = this.players.get(socketId);
-    if (!player) return false;
-
-    if (!this.answers.has(socketId)) {
-      this.answers.set(socketId, { answer, submittedAt: Date.now() });
-      return true;
+    if (!player) {
+      return { accepted: false, reason: 'player-missing' };
     }
 
-    return false;
+    if (this.answers.has(socketId)) {
+      return { accepted: false, reason: 'duplicate-answer' };
+    }
+
+    const now = Date.now();
+    const timeLeftMs = Math.max(0, this.currentEndsAt - now);
+    const timeLeftRatio = this.currentQuestion.duration
+      ? Math.max(0, Math.min(1, timeLeftMs / (this.currentQuestion.duration * 1000)))
+      : 1;
+
+    const score = computeScore(this.currentQuestion, answer, timeLeftRatio, this.quiz.settings || {}, player.streak || 0);
+    const isCorrect = score > 0;
+
+    player.score += score;
+    player.streak = isCorrect ? (player.streak || 0) + 1 : 0;
+
+    this.answers.set(socketId, {
+      answer,
+      submittedAt: now,
+      score,
+      correct: isCorrect
+    });
+
+    return {
+      accepted: true,
+      score,
+      correct: isCorrect,
+      leaderboard: this.getLeaderboard()
+    };
   }
 
   getLeaderboard() {

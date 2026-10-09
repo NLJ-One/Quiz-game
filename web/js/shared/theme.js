@@ -1,6 +1,6 @@
 import { WEDDING_CONFIG } from '/js/wedding.config.js';
 
-const THEMES = new Set(['romantique', 'champetre', 'dore', 'minimal']);
+const THEMES = new Set(['vert', 'romantique', 'champetre', 'dore', 'minimal']);
 
 export function applyTheme(theme) {
   const requestedTheme = typeof theme === 'string'

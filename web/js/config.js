@@ -1,4 +1,4 @@
-const PROD_API_URL = 'https://your-server.onrender.com';
+﻿const PROD_API_URL = 'https://your-server.onrender.com';
 
 const isLocalhost = ['localhost', '127.0.0.1'].includes(location.hostname);
 export const API_URL = isLocalhost ? 'http://localhost:3000' : PROD_API_URL;
@@ -11,7 +11,9 @@ export async function apiFetch(path, options = {}) {
 
   const headers = new Headers(options.headers || {});
   const token = localStorage.getItem('weddingquiz.hostToken');
-  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
 
   let response;
   try {

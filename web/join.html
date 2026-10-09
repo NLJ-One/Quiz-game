@@ -1,30 +1,41 @@
 <!doctype html>
-<html lang="fr" data-theme="romantique">
+<html lang="fr" data-theme="vert">
   <head>
     <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/base.css" />
     <link rel="stylesheet" href="/css/theme.css" />
     <link rel="stylesheet" href="/css/play.css" />
     <script type="module" src="/js/join/main.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#8b4358" />
+    <meta name="theme-color" content="#064e2b" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Rejoindre une partie — Quiz de mariage</title>
   </head>
-  <body class="page-join">
-    <main class="container center-screen">
-      <section class="card">
+  <body class="page-join quiz-backdrop">
+    <main class="join-screen">
+      <div class="wordmark" id="join-wordmark">Les mariés</div>
+      <section class="join-card" aria-labelledby="join-title">
         <p class="eyebrow">Bienvenue !</p>
-        <h1>Rejoindre une partie</h1>
-        <p class="muted">Saisissez le code affiché par les organisateurs, puis choisissez votre pseudo.</p>
+        <h1 id="join-title">Rejoindre une partie</h1>
         <form id="join-form" class="join-form">
-          <label for="room-code">Code de la salle
-            <input class="input" id="room-code" name="code" type="text" inputmode="numeric" autocomplete="off" maxlength="6" pattern="[0-9]{6}" required />
-          </label>
-          <label for="player-nickname">Pseudo
-            <input class="input" id="player-nickname" name="pseudo" type="text" autocomplete="nickname" minlength="2" maxlength="20" required />
-          </label>
-          <button class="btn btn--primary btn--large" type="submit">Entrer dans la partie</button>
+          <div id="join-step-code" class="join-step">
+            <label for="room-code">Code de la partie</label>
+            <input class="input join-code-input" id="room-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" aria-describedby="join-status" required />
+            <button class="btn btn--raised btn--large join-submit" id="continue-join" type="button">Continuer</button>
+          </div>
+          <div id="join-step-player" class="join-step" hidden>
+            <label for="player-nickname">Ton pseudo</label>
+            <input class="input" id="player-nickname" name="pseudo" type="text" autocomplete="nickname" minlength="2" maxlength="20" placeholder="Ex. Camille" required />
+            <fieldset class="avatar-picker">
+              <legend>Choisis ton animal</legend>
+              <div id="avatar-options" class="avatar-options" role="radiogroup" aria-label="Choisis ton avatar animal"></div>
+            </fieldset>
+            <button class="btn btn--raised btn--large join-submit" type="submit">Rejoindre</button>
+            <button class="join-back" id="back-to-code" type="button">Modifier le code</button>
+          </div>
           <p id="join-status" class="status-message" role="status" aria-live="polite"></p>
         </form>
       </section>
