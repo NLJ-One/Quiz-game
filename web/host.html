@@ -13,13 +13,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#064e2b" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Espace organisateur — Quiz de mariage</title>
+    <title>Cr?er — Quiz de mariage</title>
   </head>
   <body class="page-host quiz-backdrop">
     <main class="container">
       <div class="host-heading">
         <div>
-          <p class="eyebrow">Espace organisateur</p>
+          <p class="eyebrow">Cr?er</p>
           <h1>La salle est prête</h1>
         </div>
         <a class="btn btn--secondary" href="/editor.html">Retour à l’éditeur</a>
@@ -38,6 +38,7 @@
               <button id="seeded-host-pause" class="btn btn--secondary" type="button" disabled>Mettre en pause</button>
               <button id="seeded-host-finish" class="btn btn--secondary" type="button" disabled>Terminer la partie</button>
               <button id="seeded-host-show-board" class="btn btn--secondary" type="button" disabled>Afficher le classement</button>
+              <button id="seeded-host-reset" class="btn btn--secondary" type="button">Réinitialiser la session</button>
               <button id="seeded-host-logout" class="btn btn--secondary" type="button">Déconnexion</button>
             </div>
             <p id="seeded-host-question" class="seeded-host-question"></p>
@@ -49,7 +50,7 @@
         </div>
       </section>
       <section id="seeded-host-auth" class="card host-login" hidden>
-        <p class="eyebrow">Connexion organisateur</p>
+        <p class="eyebrow">Connexion cr?ateur</p>
         <h2>Quiz Chloé et Gilles</h2>
         <p class="muted">Connecte-toi avec le compte Supabase autorisé pour gérer la salle.</p>
         <form id="seeded-host-login-form">

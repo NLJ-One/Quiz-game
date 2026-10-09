@@ -26,6 +26,12 @@ create table if not exists public.wedding_quiz_sessions (
   owner_id uuid not null references auth.users(id) on delete restrict,
   title text not null default 'Connaissez vous vraiment Chloé et Gilles',
   description text not null default 'On va voir si vos connaissez Gilles et Chloé.',
+  settings jsonb not null default '{
+    "questionCount":15,"duration":12,"pointsBase":150,"pointsMultiplier":15,
+    "speedBonus":true,"streakBonus":true,"oneAnswerPerPlayer":true,"shuffleQuestions":true,
+    "shuffleAnswers":true,"leaderboard":true,"hostControlled":true,
+    "synchronous":true,"nicknameRequired":true,"maxPlayers":150,"lateJoin":false
+  }'::jsonb,
   code text not null unique check (code ~ '^[0-9]{6}$'),
   status text not null default 'waiting'
     check (status in ('waiting', 'playing', 'paused', 'finished')),
@@ -110,12 +116,18 @@ from jsonb_to_recordset(
     {"position":9,"question":"Quel est le deuxième prénom de Gilles ?","choices":[{"id":"A","text":"Léonce"},{"id":"B","text":"Gildas"},{"id":"C","text":"Daniel"},{"id":"D","text":"Carglass"}],"correct_answer_id":"A"},
     {"position":10,"question":"Comment se nomme la chanteuse préférée de Chloé ?","choices":[{"id":"A","text":"Beyonce"},{"id":"B","text":"Sade"},{"id":"C","text":"Alicia Keys"},{"id":"D","text":"Whitney houston"}],"correct_answer_id":"C"},
     {"position":11,"question":"Quel point commun ont les mariés ?","choices":[{"id":"A","text":"Grincheux"},{"id":"B","text":"Têtus"},{"id":"C","text":"Retardataires"},{"id":"D","text":"Naïfs"}],"correct_answer_id":"B"},
-    {"position":12,"question":"La première voiture que Gilles a acheté ?","choices":[{"id":"A","text":"Peugeot 407"},{"id":"B","text":"Ferrari"},{"id":"C","text":"Audi A1"},{"id":"D","text":"Ford Fiesta"}],"correct_answer_id":"A"},
-    {"position":13,"question":"La première ville où Chloé a enseignée ?","choices":[{"id":"A","text":"Moissy"},{"id":"B","text":"Paris"},{"id":"C","text":"Sarcelle"},{"id":"D","text":"Sevra"}],"correct_answer_id":"C"},
+    {"position":12,"question":"La première voiture que Gilles a acheté ?","choices":[{"id":"A","text":"Peugeot 407"},{"id":"B","text":"Ferrari "},{"id":"C","text":"Audi A1"},{"id":"D","text":"Ford Fiesta"}],"correct_answer_id":"A"},
+    {"position":13,"question":"La première ville où Chloé a enseignée ?","choices":[{"id":"A","text":"Moissy"},{"id":"B","text":"Paris "},{"id":"C","text":"Sarcelle"},{"id":"D","text":"Sevra,"}],"correct_answer_id":"C"},
     {"position":14,"question":"à partir de quelle mois Gilles et Chloé ont commencé à se fréquenter ?","choices":[{"id":"A","text":"Mai"},{"id":"B","text":"Janvier"},{"id":"C","text":"Mars"},{"id":"D","text":"Décembre"}],"correct_answer_id":"B"}
   ]$questions$::jsonb
 ) as q(position integer, question text, choices jsonb, correct_answer_id text)
-on conflict (position) do nothing;
+on conflict (position) do update set
+  question = excluded.question,
+  choices = excluded.choices,
+  correct_answer_id = excluded.correct_answer_id,
+  duration = excluded.duration,
+  base_points = excluded.base_points,
+  points_multiplier = excluded.points_multiplier;
 
 create or replace function private.wedding_quiz_question_payload(
   p_session_id uuid,
@@ -302,7 +314,7 @@ begin
     );
   end if;
 
-  if p_action in ('host_state', 'start', 'advance', 'pause', 'resume', 'finish', 'reset') then
+  if p_action in ('host_state', 'start', 'advance', 'pause', 'resume', 'finish', 'reset', 'leaderboard') then
     if auth.uid() is null then
       raise exception 'Authentification organisateur requise.' using errcode = '42501';
     end if;
@@ -310,7 +322,8 @@ begin
     from public.wedding_quiz_sessions
     where id = (p_payload ->> 'session_id')::uuid
     for update;
-    if not found or v_session.owner_id <> auth.uid() or v_owner_id <> auth.uid() then
+    if not found or v_session.owner_id is distinct from auth.uid()
+      or v_owner_id is distinct from auth.uid() then
       raise exception 'Seul le propriétaire authentifié peut contrôler cette partie.'
         using errcode = '42501';
     end if;
@@ -375,9 +388,11 @@ begin
       raise exception 'La partie doit être en cours pour avancer.';
     end if;
     if v_session.question_open then
+      if v_session.question_ends_at > clock_timestamp() then
+        raise exception 'Attends la fin des 12 secondes avant de révéler la réponse.';
+      end if;
       update public.wedding_quiz_sessions
       set question_open = false, leaderboard_visible = true,
-          question_ends_at = least(question_ends_at, clock_timestamp()),
           updated_at = clock_timestamp()
       where id = v_session.id;
       return jsonb_build_object('ok', true, 'revealed', true);
@@ -385,7 +400,8 @@ begin
     v_order_position := array_position(v_session.question_order, v_session.current_question);
     if v_order_position is null or v_order_position >= cardinality(v_session.question_order) then
       update public.wedding_quiz_sessions
-      set status = 'finished', leaderboard_visible = true, updated_at = clock_timestamp()
+      set status = 'finished',
+          leaderboard_visible = true, updated_at = clock_timestamp()
       where id = v_session.id;
       return jsonb_build_object('ok', true, 'status', 'finished');
     end if;
@@ -439,6 +455,19 @@ begin
     return jsonb_build_object('ok', true, 'status', 'finished');
   end if;
 
+  if p_action = 'leaderboard' then
+    if v_session.status in ('waiting', 'finished')
+      or (v_session.question_open and (
+        v_session.status = 'paused' or v_session.question_ends_at > clock_timestamp()
+      )) then
+      raise exception 'Le classement ne peut être modifié qu’à la fin d’une question.';
+    end if;
+    update public.wedding_quiz_sessions
+    set leaderboard_visible = not leaderboard_visible, updated_at = clock_timestamp()
+    where id = v_session.id;
+    return jsonb_build_object('ok', true, 'visible', not v_session.leaderboard_visible);
+  end if;
+
   if p_action = 'reset' then
     loop
       v_code := lpad(floor(random() * 1000000)::integer::text, 6, '0');
@@ -466,8 +495,11 @@ begin
     from public.wedding_quiz_players player
     join private.wedding_quiz_player_secrets secret on secret.player_id = player.id
     where player.session_id = v_session.id;
-    v_reveal := not v_session.question_open
-      or v_session.question_ends_at <= clock_timestamp();
+    v_reveal := v_session.current_question >= 0 and (
+      not v_session.question_open
+      or (v_session.status in ('playing', 'finished')
+        and v_session.question_ends_at <= clock_timestamp())
+    );
     return jsonb_build_object(
       'sessionId', v_session.id, 'code', v_session.code, 'title', v_session.title,
       'description', v_session.description, 'status', v_session.status,
@@ -511,6 +543,7 @@ begin
     ));
     v_points := case when v_correct
       then round(v_question.base_points * v_question.points_multiplier * (0.5 + 0.5 * v_ratio))::integer
+        + least(v_secret.streak * 100, 500)
       else 0 end;
     insert into private.wedding_quiz_answers
       (player_id, session_id, question_index, answer_id, is_correct, awarded_points)
@@ -532,7 +565,7 @@ begin
     join private.wedding_quiz_player_secrets secret on secret.player_id = player.id
     where player.session_id = v_session.id;
     v_reveal := not v_session.question_open
-      or v_session.question_ends_at <= clock_timestamp();
+      or (v_session.status = 'playing' and v_session.question_ends_at <= clock_timestamp());
     return jsonb_build_object(
       'sessionId', v_session.id, 'code', v_session.code, 'title', v_session.title,
       'status', v_session.status, 'questionNumber',
@@ -540,15 +573,15 @@ begin
       'questionCount', 15, 'questionOpen', v_session.question_open,
       'questionStartedAt', v_session.question_started_at,
       'questionEndsAt', v_session.question_ends_at, 'remainingMs', v_session.remaining_ms,
-      'leaderboardVisible', v_session.leaderboard_visible or v_reveal,
+      'leaderboardVisible', v_session.leaderboard_visible and v_reveal,
       'question', private.wedding_quiz_question_payload(v_session.id, v_session.current_question, v_reveal),
       'answered', exists (
         select 1 from private.wedding_quiz_answers
         where player_id = v_player.id and session_id = v_session.id
           and question_index = v_session.current_question
       ),
-      'score', case when v_reveal or v_session.status = 'finished' then v_points else null end,
-      'leaderboard', case when v_session.leaderboard_visible or v_reveal
+      'score', case when v_session.current_question < 0 or v_reveal then v_points else null end,
+      'leaderboard', case when v_session.leaderboard_visible and v_reveal
         then v_leaderboard else null end
     );
   end if;

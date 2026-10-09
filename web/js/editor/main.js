@@ -7,9 +7,7 @@ import { applyTheme } from '/js/shared/theme.js';
 import { isLoggedIn, login, logout } from '/js/shared/auth.js';
 import { ensureDefaultQuiz, list, save } from '/js/shared/quizStore.js';
 import { getSupabase, isSupabaseConfigured, weddingAction } from '/js/shared/supabase.js';
-import { getSupabase, isSupabaseConfigured, weddingAction } from '/js/shared/supabase.js';
 
-const WEDDING_SESSION_ID = 'chloe-gilles-wedding';
 const quizList = document.querySelector('#quiz-list');
 const status = document.querySelector('#editor-status');
 const loginPanel = document.querySelector('#host-login');
@@ -18,11 +16,6 @@ const seededLoginPanel = document.querySelector('#seeded-host-auth');
 const seededLoginForm = document.querySelector('#seeded-host-login-form');
 const seededLoginStatus = document.querySelector('#seeded-host-auth-status');
 let pendingQuizId = null;
-const presetStatus = document.querySelector('#preset-status');
-const presetLoginForm = document.querySelector('#preset-login-form');
-const presetPrepare = document.querySelector('#preset-prepare');
-const presetLogout = document.querySelector('#preset-logout');
-let presetOwnerSession = null;
 let seededCatalog = {
   title: 'Connaissez vous vraiment Chloé et Gilles',
   description: 'On va voir si vos connaissez Gilles et Chloé.',
@@ -62,7 +55,7 @@ function renderQuizzes(quizzes) {
   const seededLaunch = document.createElement('button');
   seededLaunch.className = 'btn btn--primary';
   seededLaunch.type = 'button';
-  seededLaunch.textContent = 'Lancer la partie';
+  seededLaunch.textContent = seededCatalog.status === 'finished' ? 'Préparer une nouvelle partie' : 'Lancer la partie';
   seededLaunch.addEventListener('click', openSeededGame);
   seededCard.append(seededDetails, seededLaunch);
   quizList.append(seededCard);
@@ -94,9 +87,14 @@ async function loadQuizzes() {
   try {
     if (isSupabaseConfigured()) {
       try {
-        seededCatalog = await weddingAction('catalog', { session_id: WEDDING_SESSION_ID });
+        const { data: { session }, error } = await getSupabase().auth.getSession();
+        if (error) throw error;
+        if (session) {
+          const catalog = await weddingAction('catalog');
+          if (catalog.sessionId) seededCatalog = { duration: 12, ...catalog };
+        }
       } catch (error) {
-        setStatus(`Quiz préenregistré indisponible : ${error.message}`, true);
+        console.warn('Le statut du quiz préenregistré n’a pas pu être chargé.', error);
       }
     }
     await ensureDefaultQuiz();
@@ -118,14 +116,16 @@ async function openSeededGame() {
     return;
   }
   try {
-    const { data: { session } } = await getSupabase().auth.getSession();
+    const { data: { session }, error } = await getSupabase().auth.getSession();
+    if (error) throw error;
     if (!session) {
       seededLoginPanel.hidden = false;
       document.querySelector('#seeded-host-email').focus();
       return;
     }
-    await weddingAction('host_state', { session_id: WEDDING_SESSION_ID });
-    location.assign('/host.html?seed=chloe-gilles');
+    const game = await weddingAction('prepare');
+    if (!game?.sessionId) throw new Error('Supabase n’a pas retourné d’identifiant de salle.');
+    location.assign(`/host.html?session=${encodeURIComponent(game.sessionId)}`);
   } catch (error) {
     seededLoginPanel.hidden = false;
     seededLoginStatus.textContent = error.message;
@@ -175,92 +175,6 @@ async function createRoom(quizId) {
   }
 }
 
-async function loadPresetQuiz() {
-  presetPrepare.hidden = true;
-  presetLogout.hidden = true;
-  presetLoginForm.hidden = true;
-  if (!isSupabaseConfigured()) {
-    presetStatus.textContent = 'Configure Supabase dans /js/supabase.config.js puis applique la migration SQL avant de te connecter.';
-    presetStatus.classList.add('error-message');
-    return;
-  }
-
-  try {
-    const supabase = getSupabase();
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    if (!session) {
-      presetLoginForm.hidden = false;
-      presetStatus.textContent = 'Connecte-toi avec le compte Supabase Auth désigné comme propriétaire du quiz.';
-      presetStatus.classList.remove('error-message');
-      return;
-    }
-
-    presetLogout.hidden = false;
-    presetOwnerSession = await weddingAction('catalog');
-    const currentSession = presetOwnerSession.sessionId
-      ? `Salle ${presetOwnerSession.code} · ${presetOwnerSession.status === 'waiting' ? 'en attente' : presetOwnerSession.status === 'playing' ? 'en cours' : presetOwnerSession.status === 'paused' ? 'en pause' : 'terminée'}.`
-      : 'Aucune session n’a encore été préparée.';
-    presetStatus.textContent = `${currentSession} Le quiz et ses 15 questions sont enregistrés dans Supabase.`;
-    presetStatus.classList.remove('error-message');
-    presetPrepare.textContent = presetOwnerSession.status === 'finished' || !presetOwnerSession.sessionId
-      ? 'Préparer la partie'
-      : presetOwnerSession.status === 'waiting' ? 'Ouvrir la salle d’attente' : 'Reprendre le contrôle';
-    presetPrepare.hidden = false;
-  } catch (error) {
-    presetStatus.textContent = error.message || 'Impossible de charger le quiz préenregistré.';
-    presetStatus.classList.add('error-message');
-  }
-}
-
-document.querySelector('#preset-prepare').addEventListener('click', async () => {
-  presetPrepare.disabled = true;
-  presetStatus.textContent = 'Préparation de la salle…';
-  try {
-    const session = await weddingAction('prepare');
-    if (!session?.sessionId || !/^\d{6}$/.test(session.code)) {
-      throw new Error('Supabase a renvoyé une salle invalide.');
-    }
-    location.assign(`/host.html?session=${encodeURIComponent(session.sessionId)}`);
-  } catch (error) {
-    presetStatus.textContent = error.message || 'Impossible de préparer la partie.';
-    presetStatus.classList.add('error-message');
-    presetPrepare.disabled = false;
-  }
-});
-
-document.querySelector('#preset-login-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const submit = form.querySelector('button[type="submit"]');
-  const email = new FormData(form).get('email');
-  const password = new FormData(form).get('password');
-  submit.disabled = true;
-  presetStatus.textContent = 'Connexion…';
-  try {
-    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    form.reset();
-    await loadPresetQuiz();
-  } catch (error) {
-    presetStatus.textContent = error.message || 'La connexion a échoué.';
-    presetStatus.classList.add('error-message');
-  } finally {
-    submit.disabled = false;
-  }
-});
-
-document.querySelector('#preset-logout').addEventListener('click', async () => {
-  try {
-    const { error } = await getSupabase().auth.signOut();
-    if (error) throw error;
-    await loadPresetQuiz();
-  } catch (error) {
-    presetStatus.textContent = error.message || 'La déconnexion a échoué.';
-    presetStatus.classList.add('error-message');
-  }
-});
-
 document.querySelector('#new-quiz').addEventListener('click', () => {
   try {
     const quiz = save({
@@ -308,8 +222,9 @@ seededLoginForm.addEventListener('submit', async (event) => {
       password: values.get('password')
     });
     if (error) throw error;
-    await weddingAction('host_state', { session_id: WEDDING_SESSION_ID });
-    location.assign('/host.html?seed=chloe-gilles');
+    const game = await weddingAction('prepare');
+    if (!game?.sessionId) throw new Error('Supabase n’a pas retourné d’identifiant de salle.');
+    location.assign(`/host.html?session=${encodeURIComponent(game.sessionId)}`);
   } catch (error) {
     seededLoginStatus.textContent = error.message;
     seededLoginStatus.classList.add('error-message');
@@ -319,4 +234,3 @@ seededLoginForm.addEventListener('submit', async (event) => {
 });
 
 loadQuizzes();
-loadPresetQuiz();

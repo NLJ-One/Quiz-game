@@ -15,6 +15,14 @@ export async function mountWeddingPlayer(session, code) {
   let busy = false;
   let channel;
   let timerInterval;
+  let refreshInterval;
+
+  function questionIsOpen() {
+    return state?.status === 'playing'
+      && state.questionOpen
+      && state.questionEndsAt
+      && Date.parse(state.questionEndsAt) > Date.now();
+  }
 
   document.querySelector('#play-code').textContent = code;
   document.querySelector('#play-avatar').textContent = session.avatar || '';
@@ -42,7 +50,7 @@ export async function mountWeddingPlayer(session, code) {
     if (!state) return;
     window.clearInterval(timerInterval);
     content.replaceChildren();
-    const index = state.questionIndex + 1;
+    const index = state.questionNumber || (state.questionIndex >= 0 ? state.questionIndex + 1 : 0);
     const progressBar = progress.querySelector('.progress__bar');
     const percentage = state.questionIndex < 0 ? 0 : Math.round((index / 15) * 100);
     progressBar.style.width = `${percentage}%`;
@@ -71,14 +79,14 @@ export async function mountWeddingPlayer(session, code) {
     }
 
     title.textContent = `Question ${index} / 15`;
-    if (state.questionOpen) {
+    if (questionIsOpen()) {
       showMessage(state.answered
         ? 'Réponse enregistrée. Attends la suite…'
         : 'Choisis une réponse avant la fin du temps.');
     } else {
       showMessage('Question terminée. Voici la bonne réponse.');
     }
-    renderQuestion(false);
+    renderQuestion(!questionIsOpen());
     renderLeaderboard();
     tickTimer();
   }
@@ -89,17 +97,15 @@ export async function mountWeddingPlayer(session, code) {
     prompt.textContent = state.question.text;
     const options = document.createElement('div');
     options.className = 'wedding-answer-options';
-    const deadlinePassed = state.questionEndsAt
-      ? Date.parse(state.questionEndsAt) <= Date.now()
-      : false;
+    const deadlinePassed = !questionIsOpen();
     for (const answer of state.question.choices) {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'btn btn--secondary wedding-answer';
-      button.textContent = answer;
-      const isCorrect = state.question.correctAnswer === answer;
-      if (state.question.correctAnswer && isCorrect) button.classList.add('is-correct');
-      button.disabled = readOnly || !state.questionOpen || state.answered
+      button.textContent = answer.text;
+      const isCorrect = state.question.correctAnswerId === answer.id;
+      if (state.question.correctAnswerId && isCorrect) button.classList.add('is-correct');
+      button.disabled = readOnly || !questionIsOpen() || state.answered
         || submitted || busy || deadlinePassed;
       button.addEventListener('click', async () => {
         submitted = true;
@@ -110,7 +116,7 @@ export async function mountWeddingPlayer(session, code) {
             session_id: state.sessionId,
             player_id: session.playerId,
             token: session.token,
-            answer
+            answer_id: answer.id
           });
           showMessage('Réponse enregistrée. Attends la suite…');
           await refresh();
@@ -126,23 +132,24 @@ export async function mountWeddingPlayer(session, code) {
       options.append(button);
     }
     content.append(prompt, options);
-    if (state.question.correctAnswer && !state.questionOpen) {
+    if (state.question.correctAnswerId && !questionIsOpen()) {
       const answer = document.createElement('p');
       answer.className = 'status-message';
-      answer.textContent = `Bonne réponse : ${state.question.correctAnswer}`;
+      const correct = state.question.choices.find((choice) => choice.id === state.question.correctAnswerId);
+      answer.textContent = `Bonne réponse : ${correct?.text || state.question.correctAnswerId}`;
       content.append(answer);
     }
   }
 
   function tickTimer() {
-    if (!state?.questionOpen || !state.questionEndsAt) return;
+    if (!state?.questionOpen || !state.questionEndsAt || state.status === 'paused') return;
     const timer = document.createElement('p');
     timer.className = 'wedding-player-timer';
     const remaining = Math.max(0, Math.ceil((Date.parse(state.questionEndsAt) - Date.now()) / 1000));
     timer.textContent = remaining > 0 ? `Temps restant : ${remaining} s` : 'Temps écoulé…';
     if (remaining === 0) {
       for (const button of content.querySelectorAll('.wedding-answer')) button.disabled = true;
-      showMessage('Temps écoulé. Attends la clôture de la question par l’organisateur.');
+      void refresh();
     }
     content.append(timer);
     if (remaining > 0) timerInterval = window.setTimeout(() => {
@@ -168,22 +175,22 @@ export async function mountWeddingPlayer(session, code) {
 
   channel = subscribeToWeddingGame(
     session.sessionId,
-    () => refresh(),
+    () => refresh().catch((error) => showMessage(error.message, true)),
     () => {}
   );
-  channel.subscribe((channelStatus) => {
-    if (channelStatus === 'SUBSCRIBED') {
-      channel.track({ playerId: session.playerId });
-    }
-  });
+  const channelHandle = channel.channel;
+  channel.ready.then(() => channelHandle.track({ playerId: session.playerId }))
+    .catch((error) => {
+      console.warn('Synchronisation temps réel indisponible; actualisation automatique active.', error);
+      showMessage('Connexion Realtime indisponible. La partie sera actualisée automatiquement.', true);
+    });
   await refresh();
-  window.setInterval(() => refresh(), 3000);
-  window.setInterval(() => {
-    weddingAction('heartbeat', {
-      session_id: session.sessionId,
-      player_id: session.playerId,
-      token: session.token
-    }).catch((error) => showMessage(error.message, true));
-  }, 20000);
-  window.addEventListener('beforeunload', () => channel.unsubscribe(), { once: true });
+  refreshInterval = window.setInterval(() => {
+    refresh().catch((error) => showMessage(error.message, true));
+  }, 2000);
+  window.addEventListener('beforeunload', () => {
+    window.clearInterval(refreshInterval);
+    window.clearTimeout(timerInterval);
+    channelHandle.unsubscribe();
+  }, { once: true });
 }

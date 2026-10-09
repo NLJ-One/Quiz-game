@@ -1,6 +1,11 @@
-import { getSupabase, subscribeToWeddingGame, weddingAction } from '/js/shared/supabase.js';
+import {
+  getSupabase,
+  notifyWeddingGame,
+  subscribeToWeddingGame,
+  weddingAction
+} from '/js/shared/supabase.js';
 
-const SESSION_ID = 'chloe-gilles-wedding';
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function mountWeddingHost() {
   const supabase = getSupabase();
@@ -15,6 +20,7 @@ export async function mountWeddingHost() {
   const question = document.querySelector('#seeded-host-question');
   const leaderboard = document.querySelector('#seeded-host-leaderboard');
   const channelHolder = { channel: null };
+  let sessionId = new URLSearchParams(location.search).get('session') || '';
   let currentState = null;
   let onlineIds = new Set();
   let refreshPending = false;
@@ -53,33 +59,40 @@ export async function mountWeddingHost() {
     const showBoard = document.querySelector('#seeded-host-show-board');
     start.disabled = currentState.status !== 'waiting';
     next.disabled = currentState.status !== 'playing';
-    next.textContent = currentState.questionOpen ? 'Question suivante' : 'Question suivante';
-    pause.disabled = !(
-      currentState.status === 'paused'
-      || (currentState.status === 'playing' && currentState.questionOpen)
-    );
+    const questionStillOpen = currentState.status === 'playing'
+      && currentState.questionOpen
+      && Date.parse(currentState.questionEndsAt) > Date.now();
+    next.textContent = questionStillOpen
+      ? 'Révéler la réponse'
+      : currentState.questionNumber >= 15 ? 'Terminer le quiz' : 'Question suivante';
+    pause.disabled = currentState.status !== 'playing' && currentState.status !== 'paused';
     pause.textContent = currentState.status === 'paused' ? 'Reprendre' : 'Mettre en pause';
     finish.disabled = currentState.status === 'finished';
     showBoard.disabled = currentState.status === 'waiting' || currentState.status === 'finished';
     showBoard.textContent = currentState.leaderboardVisible ? 'Masquer le classement' : 'Afficher le classement';
+    document.querySelector('#seeded-host-reset').disabled = false;
 
     question.replaceChildren();
     if (currentState.question) {
       const heading = document.createElement('h2');
-      heading.textContent = `Question ${currentState.questionIndex + 1} / 15`;
+      heading.textContent = `Question ${currentState.questionNumber} / 15`;
       const prompt = document.createElement('p');
       prompt.textContent = currentState.question.text;
       const options = document.createElement('ul');
       for (const choice of currentState.question.choices) {
         const option = document.createElement('li');
-        option.textContent = choice === currentState.question.correctAnswer ? `✓ ${choice}` : choice;
+        option.textContent = choice.id === currentState.question.correctAnswerId
+          ? `✓ ${choice.text}` : choice.text;
         options.append(option);
       }
       question.append(heading, prompt, options);
-      if (currentState.question.correctAnswer) {
+      if (currentState.question.correctAnswerId) {
         const answer = document.createElement('p');
         answer.className = 'status-message';
-        answer.textContent = `Bonne réponse : ${currentState.question.correctAnswer}`;
+        const correct = currentState.question.choices.find(
+          (choice) => choice.id === currentState.question.correctAnswerId
+        );
+        answer.textContent = `Bonne réponse : ${correct?.text || currentState.question.correctAnswerId}`;
         question.append(answer);
       }
       if (currentState.questionOpen && currentState.questionEndsAt) {
@@ -119,23 +132,27 @@ export async function mountWeddingHost() {
   function updateTimer() {
     const timer = document.querySelector('#seeded-host-timer');
     if (!timer || !currentState?.questionEndsAt) return;
-    const remaining = Math.max(0, Math.ceil((Date.parse(currentState.questionEndsAt) - Date.now()) / 1000));
+    const remaining = currentState.status === 'paused'
+      ? Math.max(0, Math.ceil((currentState.remainingMs || 0) / 1000))
+      : Math.max(0, Math.ceil((Date.parse(currentState.questionEndsAt) - Date.now()) / 1000));
     timer.textContent = `Temps restant : ${remaining} s`;
-    if (remaining > 0) timerHandle = window.setTimeout(updateTimer, 250);
+    if (remaining > 0 && currentState.status !== 'paused') {
+      timerHandle = window.setTimeout(updateTimer, 250);
+    }
   }
 
   async function refresh() {
-    if (refreshPending) return;
+    if (refreshPending || !sessionId) return;
     refreshPending = true;
     try {
-      currentState = await weddingAction('host_state', { session_id: SESSION_ID });
+      currentState = await weddingAction('host_state', { session_id: sessionId });
       controls.hidden = false;
       authPanel.hidden = true;
       setStatus('');
       render();
     } catch (error) {
       setStatus(error.message, true);
-      if (error.message.includes('propriétaire authentifié')) {
+      if (error.message.includes('propriétaire authentifié') || error.message.includes('Authentification organisateur')) {
         controls.hidden = true;
         authPanel.hidden = false;
       }
@@ -145,11 +162,17 @@ export async function mountWeddingHost() {
   }
 
   async function runAction(action) {
-    const buttons = controls.querySelectorAll('button');
-    buttons.forEach((button) => { button.disabled = true; });
+    controls.querySelectorAll('button').forEach((button) => { button.disabled = true; });
     try {
-      await weddingAction(action, { session_id: SESSION_ID });
+      const result = await weddingAction(action, { session_id: sessionId });
+      if (action === 'reset' && result.code) {
+        document.querySelector('#host-code').textContent = result.code;
+      }
       await refresh();
+      void notifyWeddingGame(sessionId).catch((error) => {
+        console.warn('La notification Realtime a échoué; actualisation automatique active.', error);
+        setStatus('La commande est enregistrée, mais la notification instantanée a échoué. Actualisation automatique active.', true);
+      });
     } catch (error) {
       setStatus(error.message, true);
       render();
@@ -163,6 +186,11 @@ export async function mountWeddingHost() {
   ));
   document.querySelector('#seeded-host-finish').addEventListener('click', () => runAction('finish'));
   document.querySelector('#seeded-host-show-board').addEventListener('click', () => runAction('leaderboard'));
+  document.querySelector('#seeded-host-reset').addEventListener('click', () => {
+    if (window.confirm('Réinitialiser cette session, supprimer les joueurs et créer un nouveau code ?')) {
+      runAction('reset');
+    }
+  });
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -192,33 +220,42 @@ export async function mountWeddingHost() {
     currentState = null;
     controls.hidden = true;
     authPanel.hidden = false;
-    channelHolder.channel?.unsubscribe();
+    await channelHolder.channel?.unsubscribe();
     channelHolder.channel = null;
   });
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    await refresh();
-  } else {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  if (!sessionId && new URLSearchParams(location.search).get('seed') === 'chloe-gilles') {
+    if (session) {
+      const catalog = await weddingAction('catalog');
+      sessionId = catalog.sessionId;
+    }
+  }
+  if (!UUID_PATTERN.test(sessionId)) {
+    setStatus('Aucune session préparée pour ce quiz.', true);
+    authPanel.hidden = true;
+    location.replace('/editor.html');
+    return;
+  }
+
+  if (session) await refresh();
+  else {
     authPanel.hidden = false;
     setStatus('Connecte-toi avec le compte organisateur autorisé.');
   }
 
-  const subscription = subscribeToWeddingGame(
-    SESSION_ID,
-    () => refresh(),
-    updatePresence
-  );
-  channelHolder.channel = subscription;
-  subscription.subscribe((channelStatus) => {
-    if (channelStatus === 'SUBSCRIBED') {
-      const userId = supabase.auth.getSession().then(({ data }) => {
-        if (data.session?.user?.id) subscription.track({ role: 'host', userId: data.session.user.id });
-      });
-      userId.catch((error) => setStatus(error.message, true));
-    }
+  const subscription = subscribeToWeddingGame(sessionId, () => {
+    refresh().catch((error) => setStatus(error.message, true));
+  }, updatePresence);
+  channelHolder.channel = subscription.channel;
+  subscription.ready.then(() => {
+    return subscription.channel.track({ role: 'host', userId: session?.user?.id });
+  }).catch((error) => {
+    console.warn('Synchronisation temps réel indisponible; actualisation automatique active.', error);
+    setStatus('Connexion Realtime indisponible. La salle reste actualisée automatiquement.', true);
   });
   window.setInterval(() => {
     if (currentState) refresh();
-  }, 10000);
+  }, 2500);
 }

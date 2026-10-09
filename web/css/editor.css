@@ -14,9 +14,3 @@
 .host-login { max-width: 34rem; }
 .host-login form { display: grid; gap: var(--space-4); }
 .editor-status { min-height: 1.5rem; }
-.preset-quiz { display: grid; gap: var(--space-4); }
-.preset-quiz h2 { margin: 0 0 var(--space-2); }
-.preset-quiz p { margin: 0; }
-.preset-quiz__intro { display: grid; gap: var(--space-2); }
-.preset-login { display: grid; max-width: 34rem; gap: var(--space-4); }
-.preset-quiz__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }

@@ -11,7 +11,10 @@ const status = document.querySelector('#host-status');
 applyTheme(WEDDING_CONFIG);
 renderHeader();
 
-if (new URLSearchParams(location.search).get('seed') === 'chloe-gilles') {
+const weddingSessionId = new URLSearchParams(location.search).get('session') || '';
+const isWeddingHost = new URLSearchParams(location.search).get('seed') === 'chloe-gilles'
+  || /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(weddingSessionId);
+if (isWeddingHost) {
   import('/js/wedding/host.js')
     .then(({ mountWeddingHost }) => mountWeddingHost())
     .catch((error) => {

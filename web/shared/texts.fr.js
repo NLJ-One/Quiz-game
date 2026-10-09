@@ -2,7 +2,7 @@ export const TEXTS = {
   appTitle: 'Quiz de mariage',
   homeLink: 'Accueil',
   joinButton: 'Rejoindre une partie',
-  hostArea: 'Espace organisateur',
+  hostArea: 'Cr?er',
   nickname: 'Pseudo',
   roomCode: 'Code de la salle',
   table: 'Table',

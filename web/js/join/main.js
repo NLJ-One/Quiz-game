@@ -127,6 +127,7 @@ form.addEventListener('submit', async (event) => {
       playerId: player.playerId,
       sessionId: player.sessionId,
       token: player.token,
+      seeded: true,
       avatarIndex: normalizeAvatarIndex(selectedAvatarIndex),
       avatar: ANIMAL_AVATARS[normalizeAvatarIndex(selectedAvatarIndex)]
     }));
