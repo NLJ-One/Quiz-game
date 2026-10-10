@@ -33,6 +33,14 @@ export async function weddingAction(action, payload = {}) {
   return data;
 }
 
+export async function weddingAnimationState(payload) {
+  const { data, error } = await getSupabase().rpc('wedding_quiz_animation_state', {
+    p_payload: payload
+  });
+  if (error) throw new Error(error.message || 'La synchronisation des animations a échoué.');
+  return data;
+}
+
 export function subscribeToWeddingGame(sessionId, onChange, onPresence) {
   const supabase = getSupabase();
   const channel = supabase.channel(`wedding-game:${sessionId}`, {

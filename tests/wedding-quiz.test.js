@@ -6,8 +6,28 @@ const migration = await readFile(
   new URL('../supabase/migrations/20261010000000_chloe_gilles_wedding_quiz.sql', import.meta.url),
   'utf8'
 );
+const animationMigration = await readFile(
+  new URL('../supabase/migrations/20261010010000_wedding_quiz_animation_state.sql', import.meta.url),
+  'utf8'
+);
 const editor = await readFile(
   new URL('../web/js/editor/main.js', import.meta.url),
+  'utf8'
+);
+const player = await readFile(
+  new URL('../web/js/wedding/player.js', import.meta.url),
+  'utf8'
+);
+const animationStyles = await readFile(
+  new URL('../web/css/game-animations.css', import.meta.url),
+  'utf8'
+);
+const animationHelpers = await readFile(
+  new URL('../web/js/shared/game-animations.js', import.meta.url),
+  'utf8'
+);
+const podium = await readFile(
+  new URL('../web/js/shared/final-podium.js', import.meta.url),
   'utf8'
 );
 
@@ -43,12 +63,36 @@ test('le quiz préenregistré contient les 15 questions et les réponses de la s
 
   for (const question of questions) {
     assert.equal(question.choices.length, 4, question.question);
-    assert.deepEqual(question.choices.map(({ id }) => id).sort(), ['A', 'B', 'C', 'D']);
+    assert.deepEqual(question.choices.map(({ id }) => id), ['A', 'B', 'C', 'D']);
     assert.ok(question.choices.some(({ id }) => id === question.correct_answer_id));
   }
-  assert.equal(questions[12].choices[1].text, 'Ferrari ');
-  assert.equal(questions[13].choices[1].text, 'Paris ');
-  assert.equal(questions[13].choices[3].text, 'Sevra,');
+  assert.deepEqual(questions.map((question) => (
+    question.choices.find(({ id }) => id === question.correct_answer_id).text
+  )), [
+    'Vert', '8 ans', '2009', 'Olympique de Marseille', 'Kinésithérapeute',
+    'Avatar', "Musiques d'animés", "Danse Modern'Jazz", '4 ans', 'Léonce',
+    'Alicia Keys', 'Têtus', 'Peugeot 407', 'Sarcelle', 'Janvier'
+  ]);
+  assert.deepEqual(
+    questions.map(({ choices }) => choices.map(({ text }) => text)),
+    [
+      ['Bleu', 'Vert', 'Violet', 'Orange'],
+      ['10 ans', '5 ans', '8 ans', '3 ans'],
+      ['2012', '2009', '2018', '2022'],
+      ['Paris Saint Germain (PSG)', 'FC Barçelone', 'Olympique de Marseille', 'Real Madrid'],
+      ['Kinésithérapeute', 'Psychologue', 'Présidente', 'Conseillère clientèle'],
+      ['Avatar', 'Transformers', 'Pat Patrouille', 'Toy Story 5'],
+      ['Rock', 'Hip Hop', "Musiques d'animés", 'Jazz'],
+      ["Danse Modern'Jazz", 'Breakdance', 'Danse classique', 'Salsa'],
+      ['1 mois', '4 ans', '2 ans', '1 semaines'],
+      ['Léonce', 'Gildas', 'Daniel', 'Carglass'],
+      ['Beyonce', 'Sade', 'Alicia Keys', 'Whitney houston'],
+      ['Grincheux', 'Têtus', 'Retardataires', 'Naïfs'],
+      ['Peugeot 407', 'Ferrari ', 'Audi A1', 'Ford Fiesta'],
+      ['Moissy', 'Paris ', 'Sarcelle', 'Sevra,'],
+      ['Mai', 'Janvier', 'Mars', 'Décembre']
+    ]
+  );
 });
 
 test('la migration conserve les paramètres et le score du quiz existant', () => {
@@ -62,6 +106,12 @@ test('la migration conserve les paramètres et le score du quiz existant', () =>
   assert.match(migration, /"synchronous":true/);
   assert.match(migration, /"nicknameRequired":true/);
   assert.match(migration, /"leaderboard":true/);
+  assert.match(migration, /"showLeaderboardAfterEachQuestion":true/);
+  assert.match(migration, /"showCorrectAnswer":true/);
+  assert.match(migration, /"autoAdvance":false/);
+  assert.match(migration, /"oneAnswerPerPlayer":true/);
+  assert.match(migration, /"lateJoin":false/);
+  assert.match(migration, /"maxPlayers":150/);
   assert.match(migration, /round\(v_question\.base_points \* v_question\.points_multiplier \* \(0\.5 \+ 0\.5 \* v_ratio\)\)::integer\s*\+\s*least\(v_secret\.streak \* 100, 500\)/);
   assert.match(editor, /Connaissez vous vraiment Chloé et Gilles/);
   assert.match(editor, /questionCount: 15/);
@@ -77,6 +127,41 @@ test('les contrôles et transitions de partie sont protégés côté Supabase', 
   assert.match(migration, /if p_action = 'start' then\s+if v_session\.status <> 'waiting' then/);
   assert.match(migration, /where owner_id = auth\.uid\(\) and status <> 'finished'/);
   assert.match(migration, /primary key \(player_id, session_id, question_index\)/);
-  assert.match(migration, /if p_action = 'leaderboard' then\s+if v_session\.status in \('waiting', 'finished'\)\s+or \(v_session\.question_open and v_session\.question_ends_at > clock_timestamp\(\)\) then/);
-  assert.match(migration, /v_reveal := not v_session\.question_open\s+or \(v_session\.status = 'playing' and v_session\.question_ends_at <= clock_timestamp\(\)\);/);
+  assert.match(migration, /if p_action = 'leaderboard' then\s+if v_session\.status in \('waiting', 'finished'\)\s+or \(v_session\.question_open and \([\s\S]*?v_session\.question_ends_at > clock_timestamp\(\)[\s\S]*?\)\) then/);
+  assert.match(migration, /v_reveal := v_session\.current_question >= 0 and \([\s\S]*?v_session\.status in \('playing', 'finished'\)[\s\S]*?v_session\.question_ends_at <= clock_timestamp\(\)/);
+  assert.match(migration, /Attends la fin des 12 secondes avant de révéler la réponse/);
+  assert.match(migration, /on conflict \(position\) do update set/);
+  assert.match(migration, /'code', v_session\.code/);
+  assert.match(migration, /'status', coalesce\(v_existing\.status, 'waiting'\)/);
+});
+
+test('le RPC d’animation ne divulgue le classement qu’après son affichage ou la fin', () => {
+  assert.match(
+    animationMigration,
+    /when v_session\.status = 'finished' or v_session\.leaderboard_visible\s+then v_leaderboard\s+else null/
+  );
+  assert.match(
+    animationMigration,
+    /auth\.uid\(\) = v_session\.owner_id\s+and auth\.uid\(\) = v_owner_id/
+  );
+  assert.match(animationMigration, /'score', v_score/);
+  assert.match(animationMigration, /'awardedPoints', v_awarded_points/);
+  assert.match(animationMigration, /'elapsedMs'/);
+  assert.match(animationMigration, /'answerId', v_answer_id/);
+  assert.match(animationMigration, /over \(order by question\.ordinality desc\)/);
+  assert.match(player, /await weddingAnimationState\(/);
+  assert.match(player, /animateNumber\(scoreValue, initialScore, score, \{ duration: 750 \}\)/);
+  assert.match(player, /submittedAnswerId = completionEffects\.answerId/);
+  assert.match(animationHelpers, /requestAnimationFrame/);
+});
+
+test('le podium final synchronise ses révélations et respecte la préférence de mouvement réduit', () => {
+  assert.match(podium, /third: 900/);
+  assert.match(podium, /second: 1900/);
+  assert.match(podium, /suspense: 3000/);
+  assert.match(podium, /winner: 5000/);
+  assert.match(podium, /complete: 6500/);
+  assert.match(podium, /Voir le classement complet/);
+  assert.match(podium, /finishedAt/);
+  assert.match(animationStyles, /prefers-reduced-motion: reduce/);
 });

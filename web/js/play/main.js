@@ -31,7 +31,7 @@ if (!/^\d{6}$/.test(code) || !session || session.code !== code || typeof session
   codeElement.textContent = code;
   avatar.textContent = ANIMAL_AVATARS[normalizeAvatarIndex(session.avatarIndex)];
   title.textContent = `Bienvenue, ${session.pseudo} !`;
-  if (session.seeded) {
+  if (session.seeded && session.sessionId && session.playerId) {
     import('/js/wedding/player.js')
       .then(({ mountWeddingPlayer }) => mountWeddingPlayer(session, code))
       .catch((error) => {
@@ -39,6 +39,8 @@ if (!/^\d{6}$/.test(code) || !session || session.code !== code || typeof session
         status.classList.add('error-message');
       });
   } else {
-    status.textContent = 'Vous êtes dans la salle. La partie commencera bientôt.';
+    status.textContent = TEXTS.playerTokenInvalid;
+    title.textContent = 'Rejoignez la partie';
+    location.replace(`/join.html?code=${encodeURIComponent(code)}`);
   }
 }

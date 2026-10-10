@@ -1,0 +1,331 @@
+.wedding-answer {
+  transition: transform 150ms ease, border-color 180ms ease, background-color 180ms ease,
+    box-shadow 180ms ease, opacity 180ms ease;
+  touch-action: manipulation;
+}
+
+.wedding-answer:active:not(:disabled),
+.wedding-answer.is-submitting {
+  transform: scale(0.97);
+}
+
+.wedding-answer.is-selected {
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgb(183 243 77 / 28%);
+}
+
+.wedding-answer.is-correct {
+  border-color: #176b37;
+  background: #e2f4e5;
+  color: #104b28;
+  animation: answer-correct 420ms ease-out;
+}
+
+.wedding-answer.is-incorrect {
+  border-color: #a52f40;
+  background: #f8e6e8;
+  color: #70202b;
+  opacity: 0.86;
+}
+
+.wedding-player-score,
+.wedding-player-streak {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: var(--space-4) 0 0;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.wedding-player-score {
+  color: var(--green-800);
+  font-size: clamp(1.15rem, 4vw, 1.5rem);
+}
+
+.wedding-player-score__delta {
+  display: inline-block;
+  font-size: 0.95rem;
+  animation: score-delta 900ms ease-out both;
+}
+
+.wedding-player-score__delta--gain { color: #176b37; }
+.wedding-player-score__delta--loss { color: #a52f40; }
+
+.wedding-player-streak {
+  width: fit-content;
+  margin-inline: auto;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-pill);
+  background: #fff3df;
+  color: #8a4b08;
+  animation: streak-pop 360ms cubic-bezier(0.2, 1.5, 0.5, 1);
+}
+
+.wedding-player-streak__flame {
+  display: inline-block;
+  font-size: 1.3em;
+  transform: scale(var(--streak-scale, 1));
+  transition: transform 240ms ease;
+}
+
+.player-list__row {
+  display: grid !important;
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
+  gap: 0.55rem !important;
+  transition: background-color 180ms ease;
+}
+
+.player-list__rank {
+  min-width: 2.4rem;
+  color: var(--green-700);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.player-list__rank-change {
+  min-width: 5.5rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.player-list__rank-change--up { color: #176b37; }
+.player-list__rank-change--down { color: #a52f40; }
+.player-list__rank-change--steady { color: var(--color-muted); }
+.player-list__presence { font-size: 0.75rem; }
+
+.player-list__player {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-list__score {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.player-list__row.is-player {
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--lime) 22%, var(--color-surface));
+  box-shadow: inset 3px 0 var(--green-600);
+}
+
+.wedding-leaderboard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.wedding-leaderboard h2 { margin: 0; }
+.wedding-leaderboard__list { display: grid; gap: 0.4rem; padding-left: 1.8rem; margin: 0; }
+.wedding-leaderboard__row { padding: 0.4rem 0.5rem; border-radius: var(--radius-sm); }
+.wedding-leaderboard__row.is-player { background: color-mix(in srgb, var(--lime) 28%, var(--color-surface)); font-weight: 800; }
+.wedding-leaderboard__entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; }
+.wedding-leaderboard__score { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.final-podium {
+  width: 100%;
+  margin-top: var(--space-6);
+  padding: clamp(1rem, 4vw, 2rem);
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: var(--radius-md);
+  background: rgb(5 46 31 / 34%);
+  color: var(--white);
+  text-align: center;
+  animation: podium-intro 380ms ease-out both;
+}
+
+.final-podium h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+}
+
+.final-podium__announcement {
+  min-height: 1.6em;
+  margin: var(--space-2) 0 0;
+  color: rgb(255 255 255 / 88%);
+  font-weight: 700;
+}
+
+.final-podium__places {
+  grid-template-rows: 1fr;
+  align-items: end;
+  margin-block: var(--space-6) var(--space-4);
+}
+
+.final-podium .podium-place[hidden] { display: none; }
+.final-podium .podium-place { width: 100%; }
+.final-podium .podium-player {
+  display: grid;
+  min-height: 4.25rem;
+  align-content: end;
+  justify-items: center;
+  margin-bottom: 0.35rem;
+  transform: none;
+}
+
+.final-podium .podium-player__avatar { font-size: clamp(1.4rem, 5vw, 2.3rem); }
+.final-podium .podium-column {
+  position: relative;
+  min-height: 8rem;
+  gap: 0.35rem;
+  overflow: hidden;
+  animation: none;
+}
+
+.final-podium .podium-place--second .podium-column { min-height: 10rem; }
+.final-podium .podium-place--first .podium-column { min-height: 13rem; }
+.final-podium .podium-place--third .podium-column { min-height: 8rem; }
+.final-podium .podium-place--second .podium-column { background: linear-gradient(160deg, #e0e4e9, #9ea8b2); color: #26313a; }
+.final-podium .podium-place--first .podium-column { background: linear-gradient(160deg, #ffe38a, #e2ad28); color: #40300b; }
+.final-podium .podium-place--third .podium-column { background: linear-gradient(160deg, #e6a564, #b96b27); }
+.final-podium .medal { flex: none; }
+.final-podium__identity { overflow-wrap: anywhere; font-weight: 800; }
+.final-podium .podium-column__score { font-variant-numeric: tabular-nums; }
+.final-podium .podium-column__detail { opacity: 0.82; }
+.final-podium .podium-place--first.is-masked .podium-column { animation: winner-breathe 1900ms ease-in-out infinite; }
+.final-podium .podium-place--first:not(.is-masked) .podium-column { box-shadow: 0 0 1.5rem rgb(244 196 48 / 27%); }
+.final-podium .podium-place.is-revealed .podium-column { animation: podium-rise 700ms cubic-bezier(0.2, 0.75, 0.25, 1) both; }
+.final-podium .podium-place.is-revealed .podium-player { animation: name-appear 450ms ease-out both; }
+.final-podium__question-mark {
+  display: grid;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid rgb(255 255 255 / 55%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 16%);
+  color: var(--white);
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.final-podium__particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.final-podium__particles i {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 0.38rem;
+  height: 0.55rem;
+  border-radius: 2px;
+  opacity: 0;
+}
+
+.final-podium__particles.is-active i {
+  animation: podium-confetti 1100ms ease-out var(--particle-delay) both;
+}
+
+.final-podium__full-button { margin-top: var(--space-2); }
+
+.final-podium__full-list {
+  display: grid;
+  gap: 0.45rem;
+  max-height: min(55vh, 28rem);
+  overflow: auto;
+  padding: 0;
+  margin: var(--space-4) 0 0;
+  list-style: none;
+  text-align: left;
+}
+
+.final-podium__full-list li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 10%);
+  font-variant-numeric: tabular-nums;
+}
+
+.final-podium__full-list li.is-player {
+  outline: 2px solid var(--lime);
+  background: rgb(183 243 77 / 13%);
+}
+
+.final-podium__rank { font-weight: 800; }
+
+@keyframes answer-correct {
+  0% { box-shadow: 0 0 0 0 rgb(34 160 107 / 0%); }
+  45% { box-shadow: 0 0 0 4px rgb(34 160 107 / 20%); }
+  100% { box-shadow: 0 0 0 0 rgb(34 160 107 / 0%); }
+}
+
+@keyframes score-delta {
+  0% { opacity: 0; transform: translateY(0.35rem); }
+  20% { opacity: 1; transform: translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes streak-pop {
+  0% { opacity: 0; transform: scale(0.86); }
+  70% { opacity: 1; transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@keyframes name-appear {
+  from { opacity: 0; transform: translateY(0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes winner-breathe {
+  0%, 100% { box-shadow: 0 0 0.5rem rgb(244 196 48 / 16%); }
+  50% { box-shadow: 0 0 1.3rem rgb(244 196 48 / 34%); }
+}
+
+@keyframes podium-confetti {
+  0% { opacity: 0; transform: translate(-50%, 0) rotate(0deg); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--particle-x)), 4.5rem) rotate(320deg); }
+}
+
+@keyframes podium-intro {
+  from { opacity: 0; transform: translateY(0.6rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 560px) {
+  .player-list__rank-change { min-width: 4.5rem; font-size: 0.7rem; }
+  .player-list__row { grid-template-columns: auto auto auto minmax(0, 1fr) auto auto; gap: 0.3rem !important; }
+  .final-podium { padding: 1rem 0.65rem; }
+  .final-podium__places { gap: 0.35rem; }
+  .final-podium .podium-player { min-height: 3.75rem; font-size: 0.75rem; }
+  .final-podium .podium-place--second .podium-column { min-height: 8.5rem; }
+  .final-podium .podium-place--first .podium-column { min-height: 11rem; }
+  .final-podium .podium-place--third .podium-column { min-height: 7rem; }
+  .final-podium__full-list li { grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 0.35rem; padding-inline: 0.45rem; font-size: 0.82rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wedding-answer,
+  .wedding-player-streak,
+  .wedding-player-streak__flame,
+  .player-list__row,
+  .final-podium,
+  .final-podium *,
+  .final-podium__particles.is-active i {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}

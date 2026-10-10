@@ -55,7 +55,9 @@ function renderQuizzes(quizzes) {
   const seededLaunch = document.createElement('button');
   seededLaunch.className = 'btn btn--primary';
   seededLaunch.type = 'button';
-  seededLaunch.textContent = seededCatalog.status === 'finished' ? 'Préparer une nouvelle partie' : 'Lancer la partie';
+  seededLaunch.textContent = seededCatalog.status === 'finished'
+    ? 'Préparer une nouvelle partie'
+    : seededCatalog.sessionId ? 'Ouvrir la salle d’attente' : 'Préparer la partie';
   seededLaunch.addEventListener('click', openSeededGame);
   seededCard.append(seededDetails, seededLaunch);
   quizList.append(seededCard);

@@ -2,8 +2,12 @@ import {
   getSupabase,
   notifyWeddingGame,
   subscribeToWeddingGame,
-  weddingAction
+  weddingAction,
+  weddingAnimationState
 } from '/js/shared/supabase.js';
+import { animateListPositions, animateNumber } from '/js/shared/game-animations.js';
+import { createFinalPodium } from '/js/shared/final-podium.js';
+import { ANIMAL_AVATARS, normalizeAvatarIndex } from '/shared/avatars.js';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -25,6 +29,11 @@ export async function mountWeddingHost() {
   let onlineIds = new Set();
   let refreshPending = false;
   let timerHandle;
+  let previousRanks = new Map();
+  let playerRows = new Map();
+  let hostAnimationState = null;
+  let podium;
+  let fetchingFinalState = false;
 
   function setStatus(message, isError = false) {
     status.textContent = message;
@@ -44,12 +53,79 @@ export async function mountWeddingHost() {
     document.querySelector('#host-code').textContent = currentState.code;
     document.querySelector('#seeded-host-title').textContent = `Quiz : ${currentState.title}`;
     playerCount.textContent = `Participants : ${onlineIds.size} connecté${onlineIds.size > 1 ? 's' : ''} / ${currentState.players.length} inscrit${currentState.players.length > 1 ? 's' : ''}`;
-    playersList.replaceChildren();
-    for (const player of currentState.players) {
-      const item = document.createElement('li');
-      item.textContent = `${onlineIds.has(player.id) ? '🟢' : '⚪'} ${player.pseudo} — ${player.score} pts`;
+    const previousPositions = new Map(
+      [...playersList.children].map((item) => [item.dataset.playerId, item.getBoundingClientRect().top])
+    );
+    const sortedPlayers = currentState.players
+      .map((player, index) => ({ player, index }))
+      .sort((left, right) => Number(right.player.score) - Number(left.player.score) || left.index - right.index)
+      .map(({ player }) => player);
+    const nextRanks = new Map();
+    for (const [index, player] of sortedPlayers.entries()) {
+      let item = playerRows.get(player.id);
+      if (!item) {
+        item = document.createElement('li');
+        item.className = 'player-list__row';
+        item.dataset.playerId = player.id;
+        const rank = document.createElement('span');
+        rank.className = 'player-list__rank';
+        const presence = document.createElement('span');
+        presence.className = 'player-list__presence';
+        presence.setAttribute('aria-hidden', 'true');
+        const avatar = document.createElement('span');
+        avatar.className = 'player-avatar';
+        avatar.setAttribute('aria-hidden', 'true');
+        const name = document.createElement('span');
+        name.className = 'player-list__player';
+        const score = document.createElement('span');
+        score.className = 'player-list__score';
+        const change = document.createElement('span');
+        change.className = 'player-list__rank-change';
+        item.append(rank, presence, avatar, name, score, change);
+        playerRows.set(player.id, item);
+      }
+      const [rank, presence, avatar, name, score, change] = item.children;
+      const currentRank = index + 1;
+      const previousRank = previousRanks.get(player.id);
+      rank.textContent = String(currentRank);
+      rank.setAttribute('aria-label', `Rang ${currentRank}`);
+      presence.textContent = onlineIds.has(player.id) ? '🟢' : '⚪';
+      presence.setAttribute('aria-label', onlineIds.has(player.id) ? 'En ligne' : 'Hors ligne');
+      avatar.textContent = ANIMAL_AVATARS[normalizeAvatarIndex(player.avatarIndex)];
+      name.textContent = player.pseudo;
+      const scoreValue = Number(player.score || 0);
+      const oldScore = Number(score.dataset.score);
+      if (score.dataset.score === undefined) {
+        score.textContent = `${scoreValue.toLocaleString('fr-FR')} pts`;
+      } else if (oldScore !== scoreValue) {
+        animateNumber(score, oldScore, scoreValue, {
+          duration: 750,
+          format: (value) => `${Math.round(value).toLocaleString('fr-FR')} pts`
+        });
+      }
+      score.dataset.score = String(scoreValue);
+      if (previousRank !== undefined && previousRank !== currentRank) {
+        const places = previousRank - currentRank;
+        change.className = `player-list__rank-change player-list__rank-change--${places > 0 ? 'up' : 'down'}`;
+        change.textContent = `${places > 0 ? '↑' : '↓'} ${places > 0 ? '+' : ''}${places} place${Math.abs(places) > 1 ? 's' : ''}`;
+        change.setAttribute('aria-label', `${Math.abs(places)} place${Math.abs(places) > 1 ? 's' : ''} ${places > 0 ? 'gagnée' : 'perdue'}${Math.abs(places) > 1 ? 's' : ''}`);
+      } else {
+        change.className = 'player-list__rank-change player-list__rank-change--steady';
+        change.textContent = previousRank === undefined ? '' : '— Stable';
+        change.removeAttribute('aria-label');
+      }
+      nextRanks.set(player.id, currentRank);
       playersList.append(item);
     }
+    const activePlayerIds = new Set(sortedPlayers.map((player) => player.id));
+    for (const [id, item] of playerRows) {
+      if (!activePlayerIds.has(id)) {
+        item.remove();
+        playerRows.delete(id);
+      }
+    }
+    animateListPositions(playersList, previousPositions);
+    previousRanks = nextRanks;
     playersEmpty.hidden = currentState.players.length > 0;
 
     const start = document.querySelector('#seeded-host-start');
@@ -58,17 +134,22 @@ export async function mountWeddingHost() {
     const finish = document.querySelector('#seeded-host-finish');
     const showBoard = document.querySelector('#seeded-host-show-board');
     start.disabled = currentState.status !== 'waiting';
-    next.disabled = currentState.status !== 'playing';
     const questionStillOpen = currentState.status === 'playing'
       && currentState.questionOpen
       && Date.parse(currentState.questionEndsAt) > Date.now();
-    next.textContent = questionStillOpen
+    next.disabled = currentState.status !== 'playing' || questionStillOpen;
+    next.textContent = currentState.questionOpen
       ? 'Révéler la réponse'
       : currentState.questionNumber >= 15 ? 'Terminer le quiz' : 'Question suivante';
     pause.disabled = currentState.status !== 'playing' && currentState.status !== 'paused';
     pause.textContent = currentState.status === 'paused' ? 'Reprendre' : 'Mettre en pause';
     finish.disabled = currentState.status === 'finished';
-    showBoard.disabled = currentState.status === 'waiting' || currentState.status === 'finished';
+    const questionHasEnded = !currentState.questionOpen
+      || (currentState.status === 'playing'
+        && Date.parse(currentState.questionEndsAt) <= Date.now());
+    showBoard.disabled = currentState.status === 'waiting'
+      || currentState.status === 'finished'
+      || !questionHasEnded;
     showBoard.textContent = currentState.leaderboardVisible ? 'Masquer le classement' : 'Afficher le classement';
     document.querySelector('#seeded-host-reset').disabled = false;
 
@@ -81,8 +162,9 @@ export async function mountWeddingHost() {
       const options = document.createElement('ul');
       for (const choice of currentState.question.choices) {
         const option = document.createElement('li');
+        const label = `${choice.id}. ${choice.text}`;
         option.textContent = choice.id === currentState.question.correctAnswerId
-          ? `✓ ${choice.text}` : choice.text;
+          ? `✓ ${label}` : label;
         options.append(option);
       }
       question.append(heading, prompt, options);
@@ -106,18 +188,48 @@ export async function mountWeddingHost() {
         : 'Aucune question à afficher.';
     }
 
+    if (podium && currentState.status !== 'finished') {
+      podium.destroy();
+      podium = null;
+    }
     leaderboard.replaceChildren();
-    leaderboard.hidden = !currentState.leaderboardVisible;
-    if (currentState.leaderboardVisible) {
+    leaderboard.hidden = !currentState.leaderboardVisible && currentState.status !== 'finished';
+    if (currentState.leaderboardVisible || currentState.status === 'finished') {
       const heading = document.createElement('h2');
       heading.textContent = 'Classement';
       const list = document.createElement('ol');
-      for (const player of currentState.players) {
+      list.className = 'wedding-leaderboard__list';
+      for (const [index, player] of sortedPlayers.entries()) {
         const item = document.createElement('li');
-        item.textContent = `${player.pseudo} — ${player.score} pts`;
+        item.className = 'wedding-leaderboard__row';
+        item.dataset.playerId = player.id;
+        const entry = document.createElement('span');
+        entry.className = 'wedding-leaderboard__entry';
+        const name = document.createElement('span');
+        name.textContent = `${index + 1}. ${player.pseudo}`;
+        const score = document.createElement('span');
+        score.className = 'wedding-leaderboard__score';
+        score.textContent = `${Number(player.score || 0).toLocaleString('fr-FR')} pts`;
+        entry.append(name, score);
+        item.append(entry);
         list.append(item);
       }
-      leaderboard.append(heading, list);
+      const board = document.createElement('div');
+      board.className = 'wedding-leaderboard';
+      board.append(heading, list);
+      leaderboard.append(board);
+      if (currentState.status === 'finished' && hostAnimationState) {
+        if (!podium) podium = createFinalPodium(leaderboard);
+        podium.mount(leaderboard);
+        podium.update(
+          hostAnimationState.leaderboard || sortedPlayers,
+          hostAnimationState.finishedAt,
+          hostAnimationState.elapsedMs
+        );
+      }
+    } else if (podium) {
+      podium.destroy();
+      podium = null;
     }
     updateTimer();
   }
@@ -136,6 +248,11 @@ export async function mountWeddingHost() {
       ? Math.max(0, Math.ceil((currentState.remainingMs || 0) / 1000))
       : Math.max(0, Math.ceil((Date.parse(currentState.questionEndsAt) - Date.now()) / 1000));
     timer.textContent = `Temps restant : ${remaining} s`;
+    const next = document.querySelector('#seeded-host-next');
+    if (currentState.status === 'playing' && currentState.questionOpen) {
+      next.disabled = remaining > 0;
+      next.textContent = remaining > 0 ? 'Question en cours…' : 'Révéler la réponse';
+    }
     if (remaining > 0 && currentState.status !== 'paused') {
       timerHandle = window.setTimeout(updateTimer, 250);
     }
@@ -146,6 +263,16 @@ export async function mountWeddingHost() {
     refreshPending = true;
     try {
       currentState = await weddingAction('host_state', { session_id: sessionId });
+      if (currentState.status === 'finished' && !hostAnimationState && !fetchingFinalState) {
+        fetchingFinalState = true;
+        try {
+          hostAnimationState = await weddingAnimationState({ session_id: sessionId });
+        } finally {
+          fetchingFinalState = false;
+        }
+      } else if (currentState.status !== 'finished') {
+        hostAnimationState = null;
+      }
       controls.hidden = false;
       authPanel.hidden = true;
       setStatus('');

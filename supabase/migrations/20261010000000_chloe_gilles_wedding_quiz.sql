@@ -29,7 +29,8 @@ create table if not exists public.wedding_quiz_sessions (
   settings jsonb not null default '{
     "questionCount":15,"duration":12,"pointsBase":150,"pointsMultiplier":15,
     "speedBonus":true,"streakBonus":true,"oneAnswerPerPlayer":true,"shuffleQuestions":true,
-    "shuffleAnswers":true,"leaderboard":true,"hostControlled":true,
+    "shuffleAnswers":true,"leaderboard":true,"showLeaderboardAfterEachQuestion":true,
+    "showCorrectAnswer":true,"autoAdvance":false,"hostControlled":true,
     "synchronous":true,"nicknameRequired":true,"maxPlayers":150,"lateJoin":false
   }'::jsonb,
   code text not null unique check (code ~ '^[0-9]{6}$'),
@@ -163,9 +164,9 @@ begin
     join jsonb_array_elements(v_question.choices) as choice(value)
       on choice.value ->> 'id' = ordered.choice_id #>> '{}';
   else
-    select jsonb_agg(choice)
+    select jsonb_agg(choices.choice)
     into v_choices
-    from jsonb_array_elements(v_question.choices) as choice;
+    from jsonb_array_elements(v_question.choices) as choices(choice);
   end if;
 
   v_result := jsonb_build_object(
@@ -223,7 +224,7 @@ begin
     end if;
     select * into v_session
     from public.wedding_quiz_sessions
-    where code = p_payload ->> 'code';
+    where code = p_payload ->> 'code' and status = 'waiting';
     if not found then
       return jsonb_build_object('found', false);
     end if;
@@ -249,9 +250,10 @@ begin
         'title', 'Connaissez vous vraiment Chloé et Gilles',
         'description', 'On va voir si vos connaissez Gilles et Chloé.',
         'questionCount', 15,
+        'duration', 12,
         'sessionId', v_existing.id,
         'code', v_existing.code,
-        'status', v_existing.status
+        'status', coalesce(v_existing.status, 'waiting')
       );
     end if;
 
@@ -496,6 +498,8 @@ begin
     join private.wedding_quiz_player_secrets secret on secret.player_id = player.id
     where player.session_id = v_session.id;
     v_reveal := v_session.current_question >= 0 and (
+      v_session.status = 'finished'
+      or
       not v_session.question_open
       or (v_session.status in ('playing', 'finished')
         and v_session.question_ends_at <= clock_timestamp())
@@ -592,25 +596,6 @@ $$;
 
 revoke all on function public.wedding_quiz_action(text, jsonb) from public;
 grant execute on function public.wedding_quiz_action(text, jsonb) to anon, authenticated;
-
-do $$
-begin
-  if not exists (
-    select 1 from pg_publication_tables
-    where pubname = 'supabase_realtime' and schemaname = 'public'
-      and tablename = 'wedding_quiz_sessions'
-  ) then
-    alter publication supabase_realtime add table public.wedding_quiz_sessions;
-  end if;
-  if not exists (
-    select 1 from pg_publication_tables
-    where pubname = 'supabase_realtime' and schemaname = 'public'
-      and tablename = 'wedding_quiz_players'
-  ) then
-    alter publication supabase_realtime add table public.wedding_quiz_players;
-  end if;
-end;
-$$;
 
 -- Après avoir créé le compte Supabase Auth du créateur, associer son UUID ici :
 -- update private.wedding_quiz_owner
